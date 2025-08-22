@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worldvibe-deployment
+  labels:
+    app: worldvibe
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: worldvibe
+  template:
+    metadata:
+      labels:
+        app: worldvibe
+    spec:
+      containers:
+        - name: worldvibe
+          image: yourregistry/worldvibe:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: worldvibe-secrets
+                  key: DATABASE_URL

@@ -1,0 +1,29 @@
+name: CD Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # e.g., v1.0.0
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Docker Build & Push
+        run: |
+          docker build -t yourregistry/worldvibe:${{ github.ref_name }} .
+          docker push yourregistry/worldvibe:${{ github.ref_name }}

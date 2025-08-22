@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  The default/light theme is defined in :root.
+  The dark theme is defined in .dark override block.
+*/
+@layer base {
+  :root {
+    /* Light theme color variables (only used if .dark is NOT on <html> or <body>) */
+    --background: 255, 255, 255;       /* White */
+    --foreground: 23, 23, 23;          /* Gray-900 */
+
+    --card: 255, 255, 255;            /* White */
+    --card-foreground: 23, 23, 23;    /* Gray-900 */
+
+    --popover: 255, 255, 255;
+    --popover-foreground: 23, 23, 23;
+
+    --primary: 29, 78, 216;           /* Blue-600 */
+    --primary-foreground: 255, 255, 255;
+
+    --secondary: 229, 231, 235;       /* Gray-200 */
+    --secondary-foreground: 23, 23, 23;
+
+    --muted: 229, 231, 235;           
+    --muted-foreground: 107, 114, 128; /* Gray-500 */
+
+    --accent: 59, 130, 246;           /* Blue-500 */
+    --accent-foreground: 255, 255, 255;
+
+    --destructive: 239, 68, 68;       /* Red-500 */
+    --destructive-foreground: 255, 255, 255;
+
+    --border: 229, 231, 235;          /* Gray-200 */
+    --input: 229, 231, 235;
+    --ring: 29, 78, 216;
+  }
+
+  .dark {
+    /* Dark theme color variables */
+    --background: 17, 24, 39;        /* Gray-900 */
+    --foreground: 255, 255, 255;
+
+    --card: 31, 41, 55;             /* Gray-800 */
+    --card-foreground: 255, 255, 255;
+
+    --popover: 31, 41, 55;
+    --popover-foreground: 255, 255, 255;
+
+    --primary: 147, 197, 253;       /* Blue-300 */
+    --primary-foreground: 17, 24, 39;
+
+    --secondary: 55, 65, 81;        /* Gray-700 */
+    --secondary-foreground: 255, 255, 255;
+
+    --muted: 75, 85, 99;            /* Gray-600 */
+    --muted-foreground: 229, 231, 235;
+
+    --accent: 79, 70, 229;          /* Indigo-600 */
+    --accent-foreground: 255, 255, 255;
+
+    --destructive: 185, 28, 28;     /* Red-700 */
+    --destructive-foreground: 255, 255, 255;
+
+    --border: 55, 65, 81;           /* Gray-700 */
+    --input: 55, 65, 81;
+    --ring: 79, 70, 229;
+  }
+
+  /*
+    Remove or comment out the universal border rule:
+    It was causing every single element to have a border.
+  */
+  /* * {
+  @apply border border-gray-300 dark:border-gray-700;
+  } */
+
+  /*
+    Global typography & base styles
+  */
+  body {
+    @apply antialiased transition-colors duration-200;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: rgb(var(--foreground));
+  }
+
+  a {
+    color: rgb(var(--primary));
+  }
+
+  a:hover {
+    color: rgb(var(--primary-foreground));
+  }
+}
+
+/*
+  ✅ Define color utilities that match our theme variables.
+  For instance, .bg-background => background-color of var(--background)
+*/
+@layer utilities {
+  .bg-background {
+    background-color: rgb(var(--background));
+  }
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+
+  .bg-card {
+    background-color: rgb(var(--card));
+  }
+  .text-card-foreground {
+    color: rgb(var(--card-foreground));
+  }
+
+  .bg-popover {
+    background-color: rgb(var(--popover));
+  }
+  .text-popover-foreground {
+    color: rgb(var(--popover-foreground));
+  }
+
+  .bg-primary {
+    background-color: rgb(var(--primary));
+  }
+  .text-primary {
+    color: rgb(var(--primary));
+  }
+  .text-primary-foreground {
+    color: rgb(var(--primary-foreground));
+  }
+
+  .bg-secondary {
+    background-color: rgb(var(--secondary));
+  }
+  .text-secondary {
+    color: rgb(var(--secondary));
+  }
+  .text-secondary-foreground {
+    color: rgb(var(--secondary-foreground));
+  }
+
+  .bg-muted {
+    background-color: rgb(var(--muted));
+  }
+  .text-muted {
+    color: rgb(var(--muted));
+  }
+  .text-muted-foreground {
+    color: rgb(var(--muted-foreground));
+  }
+
+  .bg-accent {
+    background-color: rgb(var(--accent));
+  }
+  .text-accent {
+    color: rgb(var(--accent));
+  }
+  .text-accent-foreground {
+    color: rgb(var(--accent-foreground));
+  }
+
+  .bg-destructive {
+    background-color: rgb(var(--destructive));
+  }
+  .text-destructive {
+    color: rgb(var(--destructive));
+  }
+  .text-destructive-foreground {
+    color: rgb(var(--destructive-foreground));
+  }
+
+  .border-border {
+    border-color: rgb(var(--border));
+  }
+}
+
+/* 
+  Custom animations, if desired 
+*/
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* 
+  Custom scrollbar (optional) 
+*/
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}

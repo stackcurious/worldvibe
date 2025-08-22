@@ -1,0 +1,166 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins", "metrics", "fieldReference"]
+  engineType      = "binary"
+}
+
+// Using string fields instead of enums for SQLite compatibility
+// Valid emotion types: JOY, CALM, STRESS, SADNESS, ANTICIPATION, ANGER, FEAR, DISGUST, SURPRISE, TRUST
+// Valid device types: MOBILE, TABLET, DESKTOP, OTHER
+
+// Base model for common fields
+model BaseModel {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("base_model")
+}
+
+// Main check-in model
+model CheckIn {
+  id            String     @id @default(uuid())
+  deviceId      String                         // Hashed device identifier
+  regionHash    String                         // Anonymized region
+  emotion       String                         // Emotion type (JOY, CALM, etc.)
+  intensity     Int
+  createdAt     DateTime   @default(now())
+  processedAt   DateTime?
+  note          String?
+  
+  // Location data (simple lat/long for SQLite)
+  latitude      Float?
+  longitude     Float?
+  accuracy      Float?                         // Location accuracy in meters
+  
+  // Device information
+  deviceType    String     @default("OTHER")   // MOBILE, TABLET, DESKTOP, OTHER
+  deviceHash    String                         // Device fingerprint
+  userAgent     String?
+  
+  // Analytics fields
+  sessionId     String?
+  source        String?                        // Traffic source
+  
+  // Privacy and compliance
+  dataRetention DateTime                       // When to delete this record
+  privacyVersion Int       @default(1)         // For privacy policy tracking
+  
+  // Metadata
+  metadata      String?                        // JSON stored as string in SQLite
+  
+  // Relations
+  session       Session?   @relation(fields: [sessionId], references: [id])
+  analytics     Analytics[]
+  
+  // Indexes for query optimization
+  @@index([regionHash, createdAt])
+  @@index([emotion, createdAt])
+  @@index([deviceId, createdAt])
+  @@index([processedAt])
+  @@index([dataRetention])
+  
+  @@map("check_ins")
+}
+
+// Session tracking for analytics
+model Session {
+  id            String    @id @default(uuid())
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  deviceId      String    
+  
+  // Session attributes
+  duration      Int?                         // Session duration in seconds
+  pageViews     Int       @default(1)
+  bounced       Boolean   @default(true)     // Single page visit
+  
+  // Relations
+  checkIns      CheckIn[]
+  events        Event[]
+  
+  @@index([deviceId, startedAt])
+  @@index([startedAt])
+  
+  @@map("sessions")
+}
+
+// Analytics events
+model Event {
+  id            String    @id @default(uuid())
+  sessionId     String
+  eventType     String
+  createdAt     DateTime  @default(now())
+  properties    String?   // JSON stored as string in SQLite
+  
+  // Relations
+  session       Session   @relation(fields: [sessionId], references: [id])
+  
+  @@index([sessionId, createdAt])
+  @@index([eventType, createdAt])
+  
+  @@map("events")
+}
+
+// Analytics aggregations
+model Analytics {
+  id            String    @id @default(uuid())
+  checkInId     String
+  periodStart   DateTime
+  periodEnd     DateTime
+  
+  // Metrics
+  emotionCounts String    // JSON stored as string in SQLite
+  totalCheckins Int
+  avgIntensity  Float
+  
+  // Relations
+  checkIn       CheckIn   @relation(fields: [checkInId], references: [id])
+  
+  @@unique([checkInId, periodStart, periodEnd])
+  @@index([periodStart, periodEnd])
+  
+  @@map("analytics")
+}
+
+// Rate limiting and security
+model RateLimit {
+  id            String    @id  // Composite key: type:identifier
+  count         Int       @default(1)
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  
+  @@index([expiresAt])
+  @@map("rate_limits")
+}
+
+// Privacy consent tracking
+model PrivacyConsent {
+  id            String    @id @default(uuid())
+  deviceId      String
+  version       Int
+  consentedAt   DateTime  @default(now())
+  revokedAt     DateTime?
+  preferences   String    // JSON stored as string in SQLite
+  
+  @@unique([deviceId, version])
+  @@index([deviceId, consentedAt])
+  
+  @@map("privacy_consents")
+}
+
+// Table for real-time analytics
+model RealtimeStats {
+  regionHash    String    @id
+  emotionCounts String    // JSON stored as string in SQLite
+  lastUpdated   DateTime
+  
+  @@map("realtime_stats")
+}

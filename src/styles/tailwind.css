@@ -1,0 +1,177 @@
+// src/styles/tailwind.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  // Emotion Cards
+  .emotion-card {
+    @apply relative p-4 rounded-lg transition-all duration-200 hover:shadow-lg;
+    
+    &.joy {
+      @apply bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20;
+    }
+    
+    &.calm {
+      @apply bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20;
+    }
+    
+    &.stress {
+      @apply bg-red-50 hover:bg-red-100 dark:bg-red-900/20;
+    }
+  }
+
+  // Global Map
+  .map-container {
+    @apply relative w-full h-[600px] rounded-xl overflow-hidden;
+    
+    .map-overlay {
+      @apply absolute inset-0 bg-gradient-to-b from-transparent to-background/80 pointer-events-none;
+    }
+  }
+
+  // Stats Cards
+  .stat-card {
+    @apply bg-card p-6 rounded-xl border shadow-sm;
+    
+    .stat-title {
+      @apply text-sm font-medium text-muted-foreground;
+    }
+    
+    .stat-value {
+      @apply text-2xl font-bold mt-2;
+    }
+    
+    .stat-description {
+      @apply text-sm text-muted-foreground mt-1;
+    }
+  }
+
+  // Check-in Form
+  .check-in-form {
+    @apply space-y-6 max-w-md mx-auto;
+    
+    .form-section {
+      @apply space-y-4;
+    }
+    
+    .section-title {
+      @apply text-lg font-medium;
+    }
+  }
+}
+
+// Animation Utilities
+@layer utilities {
+  // Transitions
+  .transition-scale {
+    @apply transition-transform duration-200;
+    
+    &:hover {
+      @apply scale-105;
+    }
+  }
+
+  // Hover Effects
+  .hover-lift {
+    @apply transition-all duration-200;
+    
+    &:hover {
+      @apply -translate-y-1 shadow-lg;
+    }
+  }
+
+  // Loading States
+  .loading-pulse {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  // Glassmorphism
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-800/20;
+  }
+}
+
+// Custom Scrollbar
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.400') theme('colors.gray.100');
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.400');
+    border-radius: 3px;
+  }
+}
+
+// Data Visualization Colors
+.viz-colors {
+  --joy-color: theme('colors.yellow.500');
+  --calm-color: theme('colors.blue.500');
+  --stress-color: theme('colors.red.500');
+}
+
+// Dark Mode Support
+.dark {
+  .glass {
+    @apply bg-gray-900/80 border-gray-800/20;
+  }
+
+  .custom-scrollbar {
+    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
+    
+    &::-webkit-scrollbar-track {
+      background: theme('colors.gray.800');
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: theme('colors.gray.600');
+    }
+  }
+}
+
+// Responsive Design
+@screen sm {
+  .stat-card {
+    @apply p-4;
+    
+    .stat-value {
+      @apply text-xl;
+    }
+  }
+}
+
+@screen md {
+  .map-container {
+    @apply h-[700px];
+  }
+}
+
+@screen lg {
+  .stat-card {
+    @apply p-6;
+    
+    .stat-value {
+      @apply text-2xl;
+    }
+  }
+}
+
+// Print Styles
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  .print-only {
+    display: block;
+  }
+}

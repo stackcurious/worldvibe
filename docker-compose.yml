@@ -1,0 +1,66 @@
+version: "3.9"
+services:
+  worldvibe:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://worldvibe:worldvibe@db:5432/worldvibe"
+      DIRECT_DATABASE_URL: "postgresql://worldvibe:worldvibe@db:5432/worldvibe"
+      TIMESCALEDB_URL: "postgresql://worldvibe:worldvibe@db:5432/worldvibe"
+      REDIS_URL: "redis://redis:6379"
+      NODE_ENV: "development"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: sh -c "npm run db:setup:seed && npm run dev"
+
+  db:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_USER: worldvibe
+      POSTGRES_PASSWORD: worldvibe
+      POSTGRES_DB: worldvibe
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U worldvibe"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development tools
+  prisma-studio:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      DATABASE_URL: "postgresql://worldvibe:worldvibe@db:5432/worldvibe"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - db
+    command: npx prisma studio --port 5555 --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  redis_data:
