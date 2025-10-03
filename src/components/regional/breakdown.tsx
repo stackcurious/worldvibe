@@ -1,13 +1,32 @@
 "use client";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useGlobalStore } from "@/stores/global-store";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export const RegionalBreakdown = memo(function RegionalBreakdown() {
+  const [mounted, setMounted] = useState(false);
   const regionalData = useGlobalStore((state) => state.regionalData);
   const regionKeys = Object.keys(regionalData || {});
   const isEmpty = regionKeys.length === 0;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Card className="p-8 bg-gradient-to-b from-blue-900 to-blue-700 text-white shadow-xl rounded-2xl">
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          🌍 Regional Mood Breakdown
+        </h2>
+        <div className="h-40 flex items-center justify-center text-gray-300">
+          Loading...
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-8 bg-gradient-to-b from-blue-900 to-blue-700 text-white shadow-xl rounded-2xl">
@@ -42,12 +61,12 @@ export const RegionalBreakdown = memo(function RegionalBreakdown() {
           >
             🌐
           </motion.div>
-          <a
-            href="/check-in"
+          <Link
+            href="/checkin"
             className="inline-block px-5 py-3 bg-white text-blue-700 font-medium rounded-full hover:bg-blue-50 transition-colors"
           >
             Share Your Vibe
-          </a>
+          </Link>
         </motion.div>
       ) : (
         /* ---------------

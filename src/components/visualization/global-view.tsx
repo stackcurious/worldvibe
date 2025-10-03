@@ -11,19 +11,26 @@ import {
 import { useTheme } from "next-themes";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export function GlobalView() {
   const [data, setData] = useState([]);
+  const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch("/api/analytics");
         const json = await res.json();
-        setData(json.data);
+        setData(json.data || []);
       } catch (err) {
         console.error("Error fetching data:", err);
+        setData([]); // Set empty array on error
       }
     };
 
@@ -32,7 +39,22 @@ export function GlobalView() {
     return () => clearInterval(interval);
   }, []);
 
-  const isEmpty = data.length === 0;
+  const isEmpty = !data || data.length === 0;
+
+  if (!mounted) {
+    return (
+      <div className="flex justify-center items-center w-full py-10">
+        <Card className="w-full max-w-5xl p-8 bg-white/90 dark:bg-gray-900 shadow-xl rounded-2xl">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">
+            🌍 Global Mood Pulse
+          </h2>
+          <div className="h-[350px] flex items-center justify-center text-gray-500">
+            Loading...
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center w-full py-10">
@@ -52,30 +74,21 @@ export function GlobalView() {
             className="flex flex-col items-center justify-center text-center text-gray-600 dark:text-gray-300"
           >
             <p className="text-xl mb-3">
-              The world’s vibes are loading...
+              The world's vibes are loading...
             </p>
             <p className="text-sm max-w-md mb-6">
               Be the first to share yours, and help fill this live chart
               with real-time emotional data.
             </p>
-            <motion.img
-              src="/images/vibe-loading.gif" // Replace with any fun loading GIF or Lottie
-              alt="Loading vibes"
-              className="w-40 h-40 mb-4 opacity-80"
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{
-                repeat: Infinity,
-                duration: 5,
-                ease: "linear",
-              }}
-            />
-            <a
-              href="/check-in"
+            <div className="w-20 h-20 mb-4 rounded-full bg-blue-500/20 flex items-center justify-center text-4xl">
+              🌍
+            </div>
+            <Link
+              href="/checkin"
               className="px-5 py-3 bg-blue-500 text-white rounded-full font-medium hover:bg-blue-600 transition-colors"
             >
               Share Your Vibe
-            </a>
+            </Link>
           </motion.div>
         ) : (
           /* ---------------
