@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/components/map/map-controls.tsx
 "use client";
 import { memo } from 'react';

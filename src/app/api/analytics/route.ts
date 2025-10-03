@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const analyticsData = await getGlobalAnalytics();
-    await redis.set(cacheKey, JSON.stringify(analyticsData), CACHE_TTL_SECONDS);
+    await redis.set(cacheKey, JSON.stringify(analyticsData), { ex: CACHE_TTL_SECONDS });
 
     metrics.increment("analytics.success");
     logger.info("Global analytics fetched successfully", { cacheKey });

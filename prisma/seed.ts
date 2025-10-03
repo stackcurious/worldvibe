@@ -283,10 +283,10 @@ async function main() {
       sessionId: session.id,
       eventType,
       createdAt,
-      properties
+      properties: JSON.stringify(properties)
     });
   }
-  
+
   await prisma.event.createMany({
     data: events
   });
@@ -312,10 +312,10 @@ async function main() {
       version: 1,
       consentedAt,
       revokedAt,
-      preferences
+      preferences: JSON.stringify(preferences)
     });
   }
-  
+
   await prisma.privacyConsent.createMany({
     data: consents
   });
@@ -360,18 +360,18 @@ async function main() {
     periodEnd.setHours(23, 59, 59, 999);
     
     // Create emotion counts
-    const emotionCounts = {};
-    
+    const emotionCounts: Record<string, number> = {};
+
     // Generate random counts for each emotion
     Object.values(EmotionType).forEach(emotion => {
       emotionCounts[emotion] = Math.floor(Math.random() * 100);
     });
-    
+
     // Add the current check-in's emotion
     emotionCounts[checkIn.emotion] = (emotionCounts[checkIn.emotion] || 0) + 1;
-    
+
     // Calculate total check-ins
-    const totalCheckins = Object.values(emotionCounts).reduce((sum, count) => sum + (count as number), 0);
+    const totalCheckins = Object.values(emotionCounts).reduce((sum: number, count) => sum + (count as number), 0);
     
     // Calculate average intensity (between 1 and 5)
     const avgIntensity = 1 + Math.random() * 4;
@@ -381,12 +381,12 @@ async function main() {
       checkInId: checkIn.id,
       periodStart,
       periodEnd,
-      emotionCounts,
+      emotionCounts: JSON.stringify(emotionCounts),
       totalCheckins,
       avgIntensity
     });
   }
-  
+
   await prisma.analytics.createMany({
     data: analytics
   });

@@ -412,6 +412,38 @@ export interface GeoLocation {
 // -----------------------------------------------------
 // 8. Charts & Visualization
 // -----------------------------------------------------
+export interface MapMarker {
+  id: string;
+  position: {
+    lat: number;
+    lng: number;
+  };
+  emotion: string;
+  intensity: number;
+  timestamp: Date;
+  region?: string;
+}
+
+export interface HeatData {
+  lat: number;
+  lng: number;
+  intensity: number;
+  emotion?: string;
+  count?: number;
+}
+
+export interface RegionalHeatmapData {
+  regionCode: string;
+  value: number;
+  emotion: string;
+  intensity: number;
+  checkInCount: number;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export interface DataPoint {
   x: string | number;
   y: number;

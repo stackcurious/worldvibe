@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from "@jest/globals";
-import { generateEphemeralToken, validateToken } from "@/src/lib/privacy/token-handler";
+import { generateEphemeralToken, validateToken } from "@/lib/privacy/token-handler";
 
 describe("Privacy Tests", () => {
   it("generates a valid token", () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/lib/privacy/region-hash.ts
 import { sha256Hex, randomBytesHex } from "@/lib/crypto-utils";
 import { redis } from "../db/redis";

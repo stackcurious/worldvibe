@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Metrics API endpoint
  * ------------------

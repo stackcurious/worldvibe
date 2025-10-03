@@ -54,7 +54,7 @@ export async function determineAdPlacement(context: AdTargetingContext) {
     const selectedAds = selectTopAds(scoredAds);
 
     // Set TTL as a number (300 seconds)
-    await redis.set(cacheKey, JSON.stringify(selectedAds), 300);
+    await redis.set(cacheKey, JSON.stringify(selectedAds), { ex: 300 });
     await logTargetingEvent({
       context,
       selectedAds,

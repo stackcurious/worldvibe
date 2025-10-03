@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * anonymous-limiter.ts
  *

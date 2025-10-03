@@ -21,7 +21,7 @@ export async function GET() {
     
     // Track metrics
     metrics.increment('api.database_status.requests');
-    metrics.gauge('database.connected', status.connected ? 1 : 0);
+    metrics.updateGauge('database.connected', status.connected ? 1 : 0);
     
     // Return the status
     return NextResponse.json({

@@ -5,10 +5,10 @@ import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
 
 export async function aggregateData(timeWindow: string = "1h") {
-  const producer = kafka.producer();
+  const producer = kafka.getProducer();
   try {
     const aggregates = await prisma.$queryRaw`
-      SELECT 
+      SELECT
         time_bucket('1 hour', "createdAt") AS bucket,
         regionHash,
         emotion,
@@ -21,17 +21,19 @@ export async function aggregateData(timeWindow: string = "1h") {
     `;
 
     // Set cache with a TTL of 300 seconds.
-    await redis.set(`aggregates:${timeWindow}`, JSON.stringify(aggregates), 300);
+    await redis.set(`aggregates:${timeWindow}`, JSON.stringify(aggregates), { ex: 300 });
 
-    await producer.send({
-      topic: "emotion-aggregates",
-      messages: [
-        {
-          key: timeWindow,
-          value: JSON.stringify(aggregates),
-        },
-      ],
-    });
+    if (producer) {
+      await producer.send({
+        topic: "emotion-aggregates",
+        messages: [
+          {
+            key: timeWindow,
+            value: JSON.stringify(aggregates),
+          },
+        ],
+      });
+    }
 
     metrics.increment("analytics.aggregation.success");
     logger.info("Aggregation successful", { timeWindow, aggregatesCount: aggregates.length });

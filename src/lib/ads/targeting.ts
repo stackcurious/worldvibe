@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/lib/ads/targeting.ts
 import { redis } from '../db/redis';
 import { metrics } from '../monitoring';

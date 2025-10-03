@@ -227,7 +227,7 @@ async function getCachedResponse(cacheKey: string, requestId: string): Promise<A
  */
 async function cacheResponse(cacheKey: string, response: AdTargetingResponse, ttl: number): Promise<void> {
   try {
-    await redis.set(cacheKey, JSON.stringify(response), ttl);
+    await redis.set(cacheKey, JSON.stringify(response), { ex: ttl });
   } catch (error) {
     // Non-fatal error - just log it
     logger.warn("Failed to cache ad response", {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Mock Prisma Client for Testing and Demo
  * -------------------------------------

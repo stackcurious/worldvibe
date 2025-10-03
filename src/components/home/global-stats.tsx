@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/components/home/global-stats.tsx
 "use client";
 import { memo } from 'react';

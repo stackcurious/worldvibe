@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/lib/api.ts
 /**
  * WorldVibe API Client

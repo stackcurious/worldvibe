@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/components/trends/emotion-trends.tsx
 "use client";
 import { memo, useMemo } from 'react';

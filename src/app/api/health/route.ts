@@ -90,10 +90,10 @@ export async function GET() {
   };
   
   // Update health metrics
-  metrics.gauge('health_check.database', databaseHealthy ? 1 : 0);
-  metrics.gauge('health_check.redis', redisHealthy ? 1 : 0);
-  metrics.gauge('health_check.timescale', timescaleHealthy ? 1 : 0);
-  metrics.gauge('health_check.overall', (databaseHealthy && redisHealthy) ? 1 : 0);
+  metrics.updateGauge('health_check.database', databaseHealthy ? 1 : 0);
+  metrics.updateGauge('health_check.redis', redisHealthy ? 1 : 0);
+  metrics.updateGauge('health_check.timescale', timescaleHealthy ? 1 : 0);
+  metrics.updateGauge('health_check.overall', (databaseHealthy && redisHealthy) ? 1 : 0);
   metrics.timing('health_check.response_time', Date.now() - startTime);
   
   // Return response with appropriate status code

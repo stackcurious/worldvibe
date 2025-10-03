@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(JSON.parse(cached as string));
     }
     const data = await getRegionTrends(region);
-    await redis.set(cacheKey, JSON.stringify(data), 300);
+    await redis.set(cacheKey, JSON.stringify(data), { ex: 300 });
     logger.info("Region trends fetched successfully", { region });
     return NextResponse.json({
       data,

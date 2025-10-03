@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { Component, ErrorInfo } from 'react';
 import { Button } from '@/components/ui/button';

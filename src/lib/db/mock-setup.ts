@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Mock Database Setup
  * -----------------

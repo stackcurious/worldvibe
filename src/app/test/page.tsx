@@ -1,20 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { EmotionType } from '@prisma/client'; 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DatabaseStatus } from '@/components/ui/database-status';
 
+const emotionTypes = ['Joy', 'Sadness', 'Anticipation', 'Surprise', 'Stress', 'Calm', 'Anger', 'Fear', 'Disgust', 'Trust'] as const;
+type EmotionType = typeof emotionTypes[number];
+
 export default function TestPage() {
-  const [emotion, setEmotion] = useState<EmotionType>(EmotionType.JOY);
+  const [emotion, setEmotion] = useState<EmotionType>('Joy');
   const [intensity, setIntensity] = useState(3);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const emotions = Object.values(EmotionType);
+  const emotions = emotionTypes;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

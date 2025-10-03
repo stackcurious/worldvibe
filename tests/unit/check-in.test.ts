@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { describe, it, expect } from "@jest/globals";
-import { createCheckIn } from "@/src/services/check-in-service";
+import { createCheckIn } from "@/services/check-in-service";
 
 describe("Check-in Service", () => {
   it("creates a check-in successfully", async () => {

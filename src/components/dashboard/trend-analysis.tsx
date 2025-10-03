@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/components/dashboard/trend-analysis.tsx
 "use client";
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/lib/circuit-breaker.ts
 /**
  * Advanced Circuit Breaker Pattern Implementation

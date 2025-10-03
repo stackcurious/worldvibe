@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { memo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

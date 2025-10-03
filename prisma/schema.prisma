@@ -1,8 +1,8 @@
 // prisma/schema.prisma
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -11,7 +11,7 @@ generator client {
   engineType      = "binary"
 }
 
-// Using string fields instead of enums for SQLite compatibility
+// Using string fields for database compatibility
 // Valid emotion types: JOY, CALM, STRESS, SADNESS, ANTICIPATION, ANGER, FEAR, DISGUST, SURPRISE, TRUST
 // Valid device types: MOBILE, TABLET, DESKTOP, OTHER
 
@@ -54,7 +54,7 @@ model CheckIn {
   privacyVersion Int       @default(1)         // For privacy policy tracking
   
   // Metadata
-  metadata      String?                        // JSON stored as string in SQLite
+  metadata      String?                        // JSON stored as string
   
   // Relations
   session       Session?   @relation(fields: [sessionId], references: [id])
@@ -98,7 +98,7 @@ model Event {
   sessionId     String
   eventType     String
   createdAt     DateTime  @default(now())
-  properties    String?   // JSON stored as string in SQLite
+  properties    String?   // JSON stored as string
   
   // Relations
   session       Session   @relation(fields: [sessionId], references: [id])
@@ -117,7 +117,7 @@ model Analytics {
   periodEnd     DateTime
   
   // Metrics
-  emotionCounts String    // JSON stored as string in SQLite
+  emotionCounts String    // JSON stored as string
   totalCheckins Int
   avgIntensity  Float
   
@@ -148,7 +148,7 @@ model PrivacyConsent {
   version       Int
   consentedAt   DateTime  @default(now())
   revokedAt     DateTime?
-  preferences   String    // JSON stored as string in SQLite
+  preferences   String    // JSON stored as string
   
   @@unique([deviceId, version])
   @@index([deviceId, consentedAt])
@@ -159,8 +159,8 @@ model PrivacyConsent {
 // Table for real-time analytics
 model RealtimeStats {
   regionHash    String    @id
-  emotionCounts String    // JSON stored as string in SQLite
+  emotionCounts String    // JSON stored as string
   lastUpdated   DateTime
-  
+
   @@map("realtime_stats")
 }

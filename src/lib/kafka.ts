@@ -59,11 +59,11 @@ class KafkaService {
 
         await this.producer.connect();
         this.isConnected = true;
-        metrics.gauge('kafka.connected', 1);
+        metrics.updateGauge('kafka.connected', 1);
         logger.info('Kafka producer connected');
       } catch (error) {
         logger.error('Failed to connect to Kafka:', error);
-        metrics.gauge('kafka.connected', 0);
+        metrics.updateGauge('kafka.connected', 0);
         this.isConnected = false;
       } finally {
         this.connectionAttempt = null;
@@ -72,6 +72,10 @@ class KafkaService {
 
     await this.connectionAttempt;
     return this.isConnected;
+  }
+
+  getProducer(): Producer | null {
+    return this.producer;
   }
 
   async sendMessage(topic: string, message: any): Promise<boolean> {
@@ -102,7 +106,7 @@ class KafkaService {
       if (this.producer && this.isConnected) {
         await this.producer.disconnect();
         this.isConnected = false;
-        metrics.gauge('kafka.connected', 0);
+        metrics.updateGauge('kafka.connected', 0);
         logger.info('Kafka producer disconnected');
       }
     } catch (error) {

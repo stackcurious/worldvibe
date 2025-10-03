@@ -12,24 +12,26 @@ interface RegionPayload {
 }
 
 export async function processRegionData(payload: RegionPayload) {
-  const producer = kafka.producer();
+  const producer = kafka.getProducer();
   try {
     // Calculate region stats using TimescaleDB via Prisma.
     const stats = await calculateRegionStats(payload.regionHash);
-    
+
     // Cache the computed stats with a TTL of 300 seconds.
-    await redis.set(`region:${payload.regionHash}:stats`, JSON.stringify(stats), 300);
-    
+    await redis.set(`region:${payload.regionHash}:stats`, JSON.stringify(stats), { ex: 300 });
+
     // Send a Kafka message to notify downstream systems.
-    await producer.send({
-      topic: "region-updates",
-      messages: [
-        {
-          key: payload.regionHash,
-          value: JSON.stringify(stats),
-        },
-      ],
-    });
+    if (producer) {
+      await producer.send({
+        topic: "region-updates",
+        messages: [
+          {
+            key: payload.regionHash,
+            value: JSON.stringify(stats),
+          },
+        ],
+      });
+    }
 
     metrics.increment("region.process.success");
     logger.info("Region data processed successfully", { regionHash: payload.regionHash, stats });

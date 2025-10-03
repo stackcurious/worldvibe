@@ -2,6 +2,10 @@
 import { z } from 'zod';
 import { CheckInSchema } from '@/types/check-in';
 
+// Intensity constants
+const MIN_INTENSITY = 1;
+const MAX_INTENSITY = 5;
+
 export class Validator {
   static validateCheckIn(data: unknown) {
     return CheckInSchema.safeParse(data);
