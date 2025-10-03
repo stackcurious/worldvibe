@@ -24,6 +24,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { GlobalView } from "@/components/visualization/global-view";
 import { RegionalBreakdown } from "@/components/regional/breakdown";
 import FloatingCTA from "@/components/ui/FloatingCTA"; // ✅ Importing Floating CTA
+import { LiveCheckInToast } from "@/components/notifications/live-checkin-toast";
 
 export default function LandingPage() {
   const [timeRange, setTimeRange] = useState("24h");
@@ -43,6 +44,9 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 to-blue-900 text-white">
       {/* ✅ Scroll-activated Floating CTA */}
       <FloatingCTA />
+
+      {/* ✨ Live Check-in Notifications */}
+      <LiveCheckInToast />
 
       {/* 🌟 Hero Section */}
       <motion.header
