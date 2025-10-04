@@ -193,12 +193,15 @@ export function CheckInForm() {
 
       // 2. Try precise location
       try {
+        console.log('🌍 Requesting user geolocation...');
         const position = await getUserGeolocation();
         const { latitude, longitude } = position.coords;
+        console.log('✅ Location received:', { latitude, longitude });
         setDetectedPosition({ lat: latitude, lng: longitude });
 
         const geoCountry = findCountryFromCoordinates(latitude, longitude);
         if (geoCountry) {
+          console.log('✅ Country detected:', geoCountry);
           setRegionInfo({
             code: geoCountry.code,
             name: geoCountry.name,
@@ -210,7 +213,9 @@ export function CheckInForm() {
           return;
         }
       } catch (err) {
-        console.warn("Geolocation error:", err);
+        console.error("❌ Geolocation error:", err);
+        console.error("Error name:", (err as Error).name);
+        console.error("Error message:", (err as Error).message);
       }
 
       // 3. Use region provider
@@ -277,6 +282,23 @@ export function CheckInForm() {
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        emotion,
+        intensity,
+        note,
+        region: regionInfo?.code,
+        timestamp: new Date().toISOString(),
+        ...(detectedPosition && {
+          coordinates: {
+            latitude: detectedPosition.lat,
+            longitude: detectedPosition.lng,
+          },
+        }),
+      };
+
+      console.log('📤 Submitting check-in:', payload);
+      console.log('📍 Position state:', detectedPosition);
+
       const response = await fetch("/api/check-in", {
         method: "POST",
         headers: {
@@ -284,19 +306,7 @@ export function CheckInForm() {
           "X-Device-ID": deviceId,
           "X-Fingerprint": fingerprint || "",
         },
-        body: JSON.stringify({
-          emotion,
-          intensity,
-          note,
-          region: regionInfo?.code,
-          timestamp: new Date().toISOString(),
-          ...(detectedPosition && {
-            coordinates: {
-              latitude: detectedPosition.lat,
-              longitude: detectedPosition.lng,
-            },
-          }),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
