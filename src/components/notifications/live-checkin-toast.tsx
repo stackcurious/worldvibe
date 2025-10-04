@@ -273,14 +273,13 @@ export function LiveCheckInToast() {
                     {/* Progress Bar */}
                     <motion.div
                       className="h-1"
-                      style={{ backgroundColor: `${emotionColor}` }}
+                      style={{ backgroundColor: `${emotionColor}`, transformOrigin: 'left' }}
                       initial={{ scaleX: 1 }}
                       animate={{ scaleX: isHovered ? 1 : 0 }}
                       transition={{
                         duration: isHovered ? 0 : 8,
                         ease: "linear"
                       }}
-                      style={{ transformOrigin: 'left' }}
                     />
                   </div>
 
