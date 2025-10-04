@@ -2,8 +2,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import prisma from "@/lib/db/prisma";
 import { redis } from "@/lib/db/redis";
-import { regionHasher } from "@/lib/privacy/region-hash"; 
+import { regionHasher } from "@/lib/privacy/region-hash";
 import { getDeviceIdentifier, updateDeviceRegion } from "@/lib/privacy/device-identifier";
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
