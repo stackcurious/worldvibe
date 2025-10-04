@@ -30,7 +30,8 @@ const checkInSchema = z.object({
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
   }).optional(),
-});
+  avatar: z.string().optional(), // Avatar selection from frontend
+}).passthrough(); // Allow additional fields without validation
 
 // Types for consistency
 type CheckInRequest = z.infer<typeof checkInSchema>;

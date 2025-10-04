@@ -68,7 +68,7 @@ export default function CheckInPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          emotion: selectedEmotion,
+          emotion: selectedEmotion?.toLowerCase(), // API expects lowercase
           avatar: selectedAvatar,
           intensity,
           note: note || undefined,
