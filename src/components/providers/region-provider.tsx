@@ -32,12 +32,17 @@ export function RegionProvider({ children }: { children: React.ReactNode }) {
         for (const service of services) {
           try {
             console.log(`🌍 Trying region detection service: ${service}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
             const response = await fetch(service, {
-              timeout: 5000,
+              signal: controller.signal,
               headers: {
                 'Accept': 'application/json',
               }
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.ok) {
               const data = await response.json();
