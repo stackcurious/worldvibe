@@ -1,7 +1,7 @@
 // src/app/api/check-ins/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
-import { redis } from "@/lib/db/redis";
+import { redis } from "@/lib/redis"; // Using REST API client
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
 
@@ -108,10 +108,9 @@ export async function GET(request: NextRequest) {
     // Cache default query result
     if (!emotion && !region && page === 1) {
       try {
-        await redis.set(CACHE_KEY, JSON.stringify(formattedCheckIns), { ex: CACHE_TTL });
+        await redis.set(CACHE_KEY, JSON.stringify(formattedCheckIns), CACHE_TTL);
       } catch (cacheError) {
-        // If Redis fails, continue without caching
-        logger.warn('Redis cache set failed, continuing without cache', { error: cacheError });
+        logger.warn('Redis cache set failed, continuing without cache', { error: String(cacheError) });
       }
     }
 

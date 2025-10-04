@@ -28,7 +28,7 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com; img-src 'self' data: https: https://www.google-analytics.com https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ipapi.co wss://* https://*.supabase.com https://unpkg.com https://www.google-analytics.com https://*.vercel-insights.com; worker-src 'self' blob:;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; img-src 'self' data: https: https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ipapi.co wss://* https://*.supabase.com https://unpkg.com https://www.google-analytics.com https://*.vercel-insights.com; frame-src 'self' https://googleads.g.doubleclick.net; worker-src 'self' blob:;",
           },
         ],
       },
