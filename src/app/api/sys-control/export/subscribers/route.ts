@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // CSV format
     const headers = ['ID', 'Email', 'Device ID', 'Timezone', 'Preferred Time', 'Is Active', 'Frequency', 'Verified', 'Subscribed At', 'Unsubscribed At'];
-    const rows = subscribers.map(s => [
+    const rows = subscribers.map((s: any) => [
       s.id,
       s.email,
       s.deviceId,
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const csv = [
       headers.join(','),
-      ...rows.map(row => row.join(','))
+      ...rows.map((row: any[]) => row.join(','))
     ].join('\n');
 
     return new NextResponse(csv, {

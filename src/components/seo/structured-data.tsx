@@ -88,7 +88,7 @@ export function StructuredData({ type = 'website' }: StructuredDataProps) {
     ],
   };
 
-  const schemas = [websiteSchema, organizationSchema, breadcrumbSchema];
+  const schemas: any[] = [websiteSchema, organizationSchema, breadcrumbSchema];
 
   if (type === 'webapp') {
     schemas.push(webAppSchema);

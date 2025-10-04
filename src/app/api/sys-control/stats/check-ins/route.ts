@@ -62,10 +62,10 @@ export async function GET() {
       _count: { emotion: true }
     });
 
-    const emotionStats = byEmotion.map(item => ({
+    const emotionStats = byEmotion.map((item: { emotion: string; _count: { emotion: number } }) => ({
       emotion: item.emotion,
       count: item._count.emotion
-    })).sort((a, b) => b.count - a.count);
+    })).sort((a: { count: number }, b: { count: number }) => b.count - a.count);
 
     // Daily trend for last 30 days
     const thirtyDaysAgo = new Date(today);
@@ -85,7 +85,7 @@ export async function GET() {
       dailyMap.set(dateKey, 0);
     }
 
-    dailyCheckIns.forEach(checkIn => {
+    dailyCheckIns.forEach((checkIn: { timestamp: Date }) => {
       const dateKey = checkIn.timestamp.toISOString().split('T')[0];
       dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + 1);
     });

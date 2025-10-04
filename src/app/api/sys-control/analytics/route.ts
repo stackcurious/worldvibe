@@ -75,11 +75,11 @@ export async function GET() {
     });
 
     const topRegions = regionCounts
-      .map(item => ({
+      .map((item: { regionHash: string | null; _count: { deviceId: number } }) => ({
         region: item.regionHash || 'Unknown',
         count: item._count.deviceId
       }))
-      .sort((a, b) => b.count - a.count)
+      .sort((a: { count: number }, b: { count: number }) => b.count - a.count)
       .slice(0, 20);
 
     // Calculate retention rates
@@ -104,8 +104,8 @@ export async function GET() {
       distinct: ['deviceId']
     });
 
-    const yesterdayDeviceIds = new Set(devicesYesterday.map(d => d.deviceId));
-    const twoDaysAgoDeviceIds = new Set(devicesTwoDaysAgo.map(d => d.deviceId));
+    const yesterdayDeviceIds = new Set(devicesYesterday.map((d: { deviceId: string }) => d.deviceId));
+    const twoDaysAgoDeviceIds = new Set(devicesTwoDaysAgo.map((d: { deviceId: string }) => d.deviceId));
 
     const dailyRetained = [...twoDaysAgoDeviceIds].filter(id => yesterdayDeviceIds.has(id)).length;
     const dailyRetention = twoDaysAgoDeviceIds.size > 0
@@ -130,8 +130,8 @@ export async function GET() {
       distinct: ['deviceId']
     });
 
-    const thisWeekDeviceIds = new Set(devicesThisWeek.map(d => d.deviceId));
-    const lastWeekDeviceIds = new Set(devicesLastWeek.map(d => d.deviceId));
+    const thisWeekDeviceIds = new Set(devicesThisWeek.map((d: { deviceId: string }) => d.deviceId));
+    const lastWeekDeviceIds = new Set(devicesLastWeek.map((d: { deviceId: string }) => d.deviceId));
 
     const weeklyRetained = [...lastWeekDeviceIds].filter(id => thisWeekDeviceIds.has(id)).length;
     const weeklyRetention = lastWeekDeviceIds.size > 0

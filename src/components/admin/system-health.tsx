@@ -275,7 +275,7 @@ export function SystemHealth() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white/5 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Last Hour</div>
-            <div className="text-3xl font-bold text-white">{health.errors["last hour"]}</div>
+            <div className="text-3xl font-bold text-white">{health.errors.lastHour}</div>
             <div className="text-xs text-gray-500 mt-1">Total errors</div>
           </div>
           <div className="bg-white/5 rounded-lg p-4">
