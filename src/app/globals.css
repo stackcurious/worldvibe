@@ -230,8 +230,17 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Smooth scroll snap */
+@supports (scroll-snap-type: x mandatory) {
+  .scrollbar-hide {
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 1.5rem;
+  }
 }

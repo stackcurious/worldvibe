@@ -112,7 +112,9 @@ export function VibesCarousel() {
   const [vibes, setVibes] = useState<Vibe[]>(MOCK_VIBES);
   const [loading, setLoading] = useState(true);
   const [usingMockData, setUsingMockData] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchVibes = async () => {
@@ -137,6 +139,40 @@ export function VibesCarousel() {
     const interval = setInterval(fetchVibes, 30000); // Refresh every 30s
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!scrollContainerRef.current || isPaused) return;
+
+    const startAutoScroll = () => {
+      autoScrollIntervalRef.current = setInterval(() => {
+        if (scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const cardWidth = 400; // 320px card + 24px gap
+          const maxScroll = container.scrollWidth - container.clientWidth;
+
+          // If we're at the end, smoothly scroll back to start
+          if (container.scrollLeft >= maxScroll - 10) {
+            container.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            // Scroll to next card
+            container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+          }
+        }
+      }, 4000); // Auto-scroll every 4 seconds
+    };
+
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+    };
+  }, [isPaused]);
+
+  const handleMouseEnter = () => setIsPaused(true);
+  const handleMouseLeave = () => setIsPaused(false);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
@@ -189,7 +225,11 @@ export function VibesCarousel() {
       </div>
 
       {/* Scrollable Cards Container */}
-      <div className="relative group">
+      <div
+        className="relative group"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         {/* Scroll Container */}
         <div
           ref={scrollContainerRef}
@@ -295,7 +335,11 @@ export function VibesCarousel() {
       {/* Bottom hint */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-400">
-          <span className="inline-block animate-pulse">←</span> Scroll to explore more vibes <span className="inline-block animate-pulse">→</span>
+          {isPaused ? (
+            <>Auto-scroll paused • Hover away to resume</>
+          ) : (
+            <>Auto-scrolling • Hover to pause • {vibes.length} vibes</>
+          )}
         </p>
       </div>
     </div>
