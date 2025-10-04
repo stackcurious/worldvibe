@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, MapPin, Clock, Heart } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { MapPin, Clock, Heart, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 interface Vibe {
@@ -15,12 +15,13 @@ interface Vibe {
   deviceType: string;
 }
 
-const EMOTION_COLORS: Record<string, string> = {
-  joy: 'from-yellow-400/20 to-yellow-600/20 border-yellow-500/30',
-  calm: 'from-green-400/20 to-green-600/20 border-green-500/30',
-  stress: 'from-red-400/20 to-red-600/20 border-red-500/30',
-  sadness: 'from-blue-400/20 to-blue-600/20 border-blue-500/30',
-  anticipation: 'from-purple-400/20 to-purple-600/20 border-purple-500/30',
+// Apple-inspired gradient backgrounds for each emotion
+const EMOTION_GRADIENTS: Record<string, string> = {
+  joy: 'bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500',
+  calm: 'bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500',
+  stress: 'bg-gradient-to-br from-rose-400 via-pink-400 to-red-500',
+  sadness: 'bg-gradient-to-br from-blue-400 via-indigo-400 to-purple-500',
+  anticipation: 'bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-500',
 };
 
 const EMOTION_EMOJI: Record<string, string> = {
@@ -109,10 +110,9 @@ const MOCK_VIBES: Vibe[] = [
 
 export function VibesCarousel() {
   const [vibes, setVibes] = useState<Vibe[]>(MOCK_VIBES);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [direction, setDirection] = useState(0);
   const [usingMockData, setUsingMockData] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchVibes = async () => {
@@ -138,28 +138,6 @@ export function VibesCarousel() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-advance carousel
-  useEffect(() => {
-    if (vibes.length === 0) return;
-
-    const timer = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prev) => (prev + 1) % vibes.length);
-    }, 5000); // Auto-advance every 5 seconds
-
-    return () => clearInterval(timer);
-  }, [vibes.length]);
-
-  const goToNext = () => {
-    setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % vibes.length);
-  };
-
-  const goToPrevious = () => {
-    setDirection(-1);
-    setCurrentIndex((prev) => (prev - 1 + vibes.length) % vibes.length);
-  };
-
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const time = new Date(timestamp);
@@ -171,154 +149,154 @@ export function VibesCarousel() {
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   if (loading) {
     return (
-      <div className="relative h-64 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+      <div className="relative h-96 flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-purple-500 border-t-transparent rounded-full"></div>
       </div>
     );
   }
-
-  if (vibes.length === 0) {
-    return (
-      <div className="relative h-64 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 flex items-center justify-center">
-        <p className="text-gray-400">No vibes shared yet. Be the first!</p>
-      </div>
-    );
-  }
-
-  const currentVibe = vibes[currentIndex];
-  const emotionColor = EMOTION_COLORS[currentVibe.emotion] || EMOTION_COLORS.joy;
-  const emotionEmoji = EMOTION_EMOJI[currentVibe.emotion] || '😊';
 
   return (
-    <div className="relative">
-      {/* Main Carousel */}
-      <div className="relative h-80 overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-xl border border-white/10">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentIndex}
-            custom={direction}
-            initial={{ opacity: 0, x: direction > 0 ? 300 : -300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction > 0 ? -300 : 300 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className="absolute inset-0 p-8"
-          >
-            {/* Background gradient based on emotion */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${emotionColor} opacity-50`} />
+    <div className="relative w-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-6 h-6 text-yellow-400" />
+          <h3 className="text-2xl font-bold text-white">Live Vibes from Around the World</h3>
+          {usingMockData && (
+            <span className="px-3 py-1 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30">
+              Preview Mode
+            </span>
+          )}
+        </div>
+        <Link
+          href="/trending"
+          className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+        >
+          View all →
+        </Link>
+      </div>
 
-            {/* Content */}
-            <div className="relative h-full flex flex-col justify-between">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-5xl">{emotionEmoji}</span>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white capitalize">{currentVibe.emotion}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Heart
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < currentVibe.intensity
-                                ? 'fill-red-500 text-red-500'
-                                : 'text-gray-600'
-                            }`}
-                          />
-                        ))}
+      {/* Scrollable Cards Container */}
+      <div className="relative group">
+        {/* Scroll Container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {vibes.map((vibe, index) => {
+            const gradient = EMOTION_GRADIENTS[vibe.emotion] || EMOTION_GRADIENTS.joy;
+            const emoji = EMOTION_EMOJI[vibe.emotion] || '😊';
+
+            return (
+              <motion.div
+                key={vibe.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex-shrink-0 w-80 snap-start"
+              >
+                {/* Card with gradient background */}
+                <div className={`relative h-80 rounded-3xl ${gradient} p-8 shadow-2xl overflow-hidden group/card`}>
+                  {/* Subtle overlay for text readability */}
+                  <div className="absolute inset-0 bg-black/10" />
+
+                  {/* Content */}
+                  <div className="relative h-full flex flex-col justify-between text-white">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-5xl drop-shadow-lg">{emoji}</span>
+                        <div>
+                          <h4 className="text-xl font-bold capitalize drop-shadow-md">
+                            {vibe.emotion}
+                          </h4>
+                          <div className="flex gap-1 mt-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Heart
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < vibe.intensity
+                                    ? 'fill-white/90 text-white/90'
+                                    : 'fill-white/30 text-white/30'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-gray-400 text-sm">
-                        {currentVibe.intensity}/5 intensity
-                      </span>
+                    </div>
+
+                    {/* Quote */}
+                    <div className="flex-1 flex items-center py-6">
+                      <blockquote className="text-lg font-medium leading-relaxed drop-shadow-md">
+                        "{vibe.reason}"
+                      </blockquote>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-white/90 text-sm">
+                        <MapPin className="w-4 h-4" />
+                        <span className="font-medium">{vibe.region}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-white/80 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3" />
+                          {formatTimeAgo(vibe.timestamp)}
+                        </div>
+                        <span className="capitalize">{vibe.deviceType}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm">
-                    <Clock className="w-4 h-4" />
-                    {formatTimeAgo(currentVibe.timestamp)}
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
-                    <MapPin className="w-4 h-4" />
-                    {currentVibe.region.slice(0, 8)}...
+                  {/* Shine effect on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 transform translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000" />
                   </div>
                 </div>
-              </div>
+              </motion.div>
+            );
+          })}
+        </div>
 
-              {/* Quote/Reason */}
-              <div className="flex-1 flex items-center justify-center py-8">
-                <blockquote className="text-3xl font-light text-white text-center leading-relaxed max-w-2xl">
-                  "{currentVibe.reason}"
-                </blockquote>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between">
-                <div className="text-gray-500 text-sm">
-                  Anonymous • {currentVibe.deviceType}
-                </div>
-                <Link
-                  href="/trending"
-                  className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium flex items-center gap-1"
-                >
-                  View all vibes
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation Buttons */}
+        {/* Scroll buttons - appear on hover */}
         <button
-          onClick={goToPrevious}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all"
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110"
         >
-          <ChevronLeft className="w-6 h-6 text-white" />
+          <svg className="w-6 h-6 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
 
         <button
-          onClick={goToNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all"
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:scale-110"
         >
-          <ChevronRight className="w-6 h-6 text-white" />
+          <svg className="w-6 h-6 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 
-      {/* Dots Indicator */}
-      <div className="flex items-center justify-center gap-2 mt-6">
-        {vibes.slice(0, 10).map((_, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              setDirection(index > currentIndex ? 1 : -1);
-              setCurrentIndex(index);
-            }}
-            className={`h-2 rounded-full transition-all ${
-              index === currentIndex
-                ? 'w-8 bg-purple-500'
-                : 'w-2 bg-gray-600 hover:bg-gray-500'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Live indicator / Preview mode */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        {usingMockData ? (
-          <>
-            <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-            <span className="text-xs text-yellow-400">Preview</span>
-          </>
-        ) : (
-          <>
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-xs text-gray-400">Live</span>
-          </>
-        )}
+      {/* Bottom hint */}
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-400">
+          <span className="inline-block animate-pulse">←</span> Scroll to explore more vibes <span className="inline-block animate-pulse">→</span>
+        </p>
       </div>
     </div>
   );
