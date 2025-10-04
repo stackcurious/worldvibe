@@ -164,3 +164,25 @@ model RealtimeStats {
 
   @@map("realtime_stats")
 }
+
+// Email reminder subscriptions
+model EmailReminder {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  deviceId        String    // Associate with device for check-in tracking
+  timezone        String    @default("UTC")
+  preferredTime   String    @default("09:00") // HH:MM format
+  isActive        Boolean   @default(true)
+  frequency       String    @default("DAILY") // DAILY, WEEKLY, CUSTOM
+  lastReminderAt  DateTime?
+  subscribedAt    DateTime  @default(now())
+  unsubscribedAt  DateTime?
+  verifiedAt      DateTime?
+  verificationToken String?
+
+  @@index([isActive, lastReminderAt])
+  @@index([deviceId])
+  @@index([email])
+
+  @@map("email_reminders")
+}

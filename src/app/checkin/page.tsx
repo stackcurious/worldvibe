@@ -30,9 +30,28 @@ export default function CheckInPage() {
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [deviceId, setDeviceId] = useState<string>("");
+  const [alreadySubscribed, setAlreadySubscribed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // Generate or get device ID
+    let storedDeviceId = localStorage.getItem('worldvibe_device_id');
+    if (!storedDeviceId) {
+      storedDeviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('worldvibe_device_id', storedDeviceId);
+    }
+    setDeviceId(storedDeviceId);
+
+    // Check if user already subscribed
+    const subscribedEmail = localStorage.getItem('worldvibe_subscribed_email');
+    if (subscribedEmail) {
+      setAlreadySubscribed(true);
+    }
   }, []);
 
   const handleEmotionSelect = (emotion: string) => {
@@ -43,16 +62,107 @@ export default function CheckInPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Submit check-in to API
+      const response = await fetch('/api/check-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emotion: selectedEmotion,
+          avatar: selectedAvatar,
+          intensity,
+          note: note || undefined,
+        }),
+      });
 
-    setIsSubmitting(false);
-    setSubmitted(true);
+      if (!response.ok) {
+        throw new Error('Failed to submit check-in');
+      }
 
-    // Redirect to home after 2 seconds
-    setTimeout(() => {
-      router.push("/");
-    }, 2000);
+      setIsSubmitting(false);
+      setSubmitted(true);
+
+      // Check if we should show email prompt
+      const shouldShowPrompt = shouldShowEmailPrompt();
+
+      // Show email reminder prompt after 2 seconds (if eligible)
+      if (shouldShowPrompt && !alreadySubscribed) {
+        setTimeout(() => {
+          setShowEmailPrompt(true);
+        }, 2000);
+      } else {
+        // If not showing prompt, redirect to globe after 3 seconds
+        setTimeout(() => {
+          router.push("/globe");
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error submitting check-in:', error);
+      setIsSubmitting(false);
+      // Show error state (for now just alert, could enhance with toast)
+      alert('Failed to submit check-in. Please try again.');
+    }
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setEmailSubmitting(true);
+
+    try {
+      const response = await fetch('/api/reminders/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          deviceId: deviceId,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Mark as subscribed in localStorage
+        localStorage.setItem('worldvibe_subscribed_email', email);
+        alert('✅ Success! Check your email to verify your subscription.');
+        setTimeout(() => router.push("/globe"), 1000);
+      } else {
+        alert(data.error || 'Failed to subscribe');
+      }
+    } catch (error) {
+      console.error('Error subscribing to reminders:', error);
+      alert('Failed to subscribe. Please try again.');
+    } finally {
+      setEmailSubmitting(false);
+    }
+  };
+
+  const shouldShowEmailPrompt = (): boolean => {
+    // Check if user dismissed the prompt
+    const dismissedUntil = localStorage.getItem('worldvibe_email_prompt_dismissed');
+    if (dismissedUntil) {
+      const dismissedDate = new Date(dismissedUntil);
+      if (dismissedDate > new Date()) {
+        return false; // Still in dismissal period
+      }
+    }
+    return true;
+  };
+
+  const handleSkipEmail = () => {
+    router.push("/globe");
+  };
+
+  const handleDontAskAgain = () => {
+    // Dismiss for 7 days
+    const dismissUntil = new Date();
+    dismissUntil.setDate(dismissUntil.getDate() + 7);
+    localStorage.setItem('worldvibe_email_prompt_dismissed', dismissUntil.toISOString());
+    router.push("/globe");
   };
 
   if (!mounted) return null;
@@ -113,10 +223,14 @@ export default function CheckInPage() {
               </motion.div>
 
               <h2 className="text-5xl font-bold mb-4">Thank you! ✨</h2>
-              <p className="text-xl text-gray-300 mb-2">Your vibe has been added to the global pulse</p>
-              <p className="text-sm text-gray-400">Redirecting you back...</p>
+              <p className="text-xl text-gray-300 mb-2">
+                {showEmailPrompt ? "You're helping shape the world" : "Your vibe has been added to the global pulse"}
+              </p>
+              {!showEmailPrompt && (
+                <p className="text-sm text-gray-400">Preparing something special...</p>
+              )}
 
-              {selectedEmotionData && selectedAvatarData && (
+              {!showEmailPrompt && selectedEmotionData && selectedAvatarData && (
                 <div className="flex items-center justify-center gap-4 mt-8 flex-wrap">
                   <motion.div
                     className="inline-flex items-center gap-3 px-6 py-4 bg-white/10 rounded-3xl shadow-xl border-2 border-white/20"
@@ -147,6 +261,111 @@ export default function CheckInPage() {
                     <span className="text-lg font-medium">{selectedEmotionData.name}</span>
                   </motion.div>
                 </div>
+              )}
+
+              {/* Email Reminder Prompt */}
+              {showEmailPrompt && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-8 max-w-md mx-auto"
+                >
+                  <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20">
+                    <div className="text-center mb-6">
+                      <motion.div
+                        className="inline-block text-6xl mb-3"
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        🌍
+                      </motion.div>
+                      <h3 className="text-3xl font-bold mb-3">Help Shape the World</h3>
+                      <p className="text-gray-300 leading-relaxed text-lg">
+                        Join thousands making the world's emotional pulse visible, one check-in at a time.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-start gap-3 text-left">
+                        <span className="text-2xl mt-1">📧</span>
+                        <div>
+                          <p className="font-semibold text-white">Daily gentle reminder</p>
+                          <p className="text-sm text-gray-300">We'll ping you once a day to share your vibe</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 text-left">
+                        <span className="text-2xl mt-1">🔥</span>
+                        <div>
+                          <p className="font-semibold text-white">Build your streak</p>
+                          <p className="text-sm text-gray-300">See your consistency grow day by day</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 text-left">
+                        <span className="text-2xl mt-1">🌎</span>
+                        <div>
+                          <p className="font-semibold text-white">Make real impact</p>
+                          <p className="text-sm text-gray-300">Your daily check-in helps shape global understanding</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-500/20 border border-blue-400/30 rounded-2xl p-4 mb-6">
+                      <p className="text-sm text-blue-200 flex items-start gap-2">
+                        <span className="text-lg">🔒</span>
+                        <span>
+                          <strong className="text-white">100% Private.</strong> Just one daily reminder—no spam, no sharing, no marketing. Ever.
+                        </span>
+                      </p>
+                    </div>
+
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400 transition-all mb-4"
+                      onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
+                    />
+
+                    <motion.button
+                      onClick={handleEmailSubmit}
+                      disabled={emailSubmitting || !email}
+                      className="w-full px-6 py-5 bg-gradient-to-r from-yellow-400 to-pink-500 rounded-full font-bold text-white text-lg shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      whileHover={{ scale: emailSubmitting || !email ? 1 : 1.02 }}
+                      whileTap={{ scale: emailSubmitting || !email ? 1 : 0.98 }}
+                    >
+                      {emailSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <motion.div
+                            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                          Subscribing...
+                        </span>
+                      ) : (
+                        '✨ Yes! Help Me Shape the World'
+                      )}
+                    </motion.button>
+
+                    <div className="flex items-center justify-center gap-4 mt-4">
+                      <button
+                        onClick={handleSkipEmail}
+                        className="text-gray-400 hover:text-white text-sm transition-colors"
+                      >
+                        Maybe later
+                      </button>
+                      <span className="text-gray-600">•</span>
+                      <button
+                        onClick={handleDontAskAgain}
+                        className="text-gray-400 hover:text-white text-sm transition-colors"
+                      >
+                        Don't ask for 7 days
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
               )}
             </motion.div>
           ) : step === 1 ? (
