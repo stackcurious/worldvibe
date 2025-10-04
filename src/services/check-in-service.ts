@@ -11,7 +11,7 @@ import { AnalyticsService } from "./analytics-service";
 import { timescaleDB } from "@/lib/db/timescale";
 import { VALID_EMOTIONS } from "@/config/emotions";
 import { SQLiteCheckInService } from "./sqlite-check-in-service";
-import { trendingNotesService } from "./trending-notes-service";
+import { processNoteForTrending } from "./trending-notes-service";
 
 // Placeholder for sanitizeText since it's missing
 const sanitizeText = (text: string) => text?.replace(/[<>]/g, '') || null;
@@ -173,12 +173,11 @@ export class CheckInService {
 
       // Process note for trending (non-blocking)
       if (params.note) {
-        trendingNotesService.processNote({
-          note: params.note,
-          emotion: normalizedEmotion,
-          regionHash: params.regionHash,
-          timestamp: params.timestamp,
-        }).catch(error => {
+        processNoteForTrending(
+          params.note,
+          normalizedEmotion,
+          id
+        ).catch((error: unknown) => {
           logger.warn("Failed to process note for trending", {
             error: String(error),
             checkInId: id
