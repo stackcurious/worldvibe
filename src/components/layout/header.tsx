@@ -24,7 +24,13 @@ export const Header = memo(function Header() {
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() ?? 0;
     setHidden(latest > previous && latest > 100);
-    setShowCTA(latest < previous || latest < 100);
+
+    // Hide CTA when scrolled down OR near bottom (to avoid footer overlap)
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const isNearBottom = latest + windowHeight >= documentHeight - 200;
+
+    setShowCTA((latest < previous || latest < 100) && !isNearBottom);
   });
 
   return (

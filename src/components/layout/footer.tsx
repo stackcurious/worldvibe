@@ -25,7 +25,7 @@ export const Footer = memo(function Footer() {
   }, []);
 
   return (
-    <footer className="w-full py-6 border-t border-gray-700 bg-black/60 backdrop-blur-md text-center text-white">
+    <footer className="w-full py-6 pb-24 md:pb-6 border-t border-gray-700 bg-black/60 backdrop-blur-md text-center text-white">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row">
         {/* Logo & Copyright */}
         <div className="flex flex-col items-center md:flex-row gap-2 text-sm">
