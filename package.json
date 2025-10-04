@@ -91,7 +91,7 @@
     "class-variance-authority": "^0.7.1",
     "classnames": "2.3.2",
     "clsx": "^1.2.1",
-    "date-fns": "2.29.3",
+    "date-fns": "^3.6.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.1",
     "framer-motion": "^12.4.1",

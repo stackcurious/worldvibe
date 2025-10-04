@@ -29,14 +29,14 @@ export async function GET(request: NextRequest) {
       // Today's check-ins
       prisma.checkIn.count({
         where: {
-          timestamp: { gte: new Date(now.setHours(0, 0, 0, 0)) }
+          createdAt: { gte: new Date(now.setHours(0, 0, 0, 0)) }
         }
       }),
 
       // Yesterday's check-ins
       prisma.checkIn.count({
         where: {
-          timestamp: {
+          createdAt: {
             gte: new Date(yesterday.setHours(0, 0, 0, 0)),
             lt: new Date(now.setHours(0, 0, 0, 0))
           }
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       // Last week devices for comparison
       prisma.checkIn.findMany({
         where: {
-          timestamp: { gte: lastWeek }
+          createdAt: { gte: lastWeek }
         },
         select: { deviceId: true },
         distinct: ['deviceId']
