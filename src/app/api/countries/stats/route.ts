@@ -92,7 +92,7 @@ export async function GET() {
     }>();
 
     // Process recent check-ins
-    recentCheckIns.forEach(checkIn => {
+    recentCheckIns.forEach((checkIn: { regionHash: string | null; emotion: string }) => {
       const countryCode = extractCountryCode(checkIn.regionHash || '');
       if (!countryStats.has(countryCode)) {
         countryStats.set(countryCode, {
@@ -110,7 +110,7 @@ export async function GET() {
     });
 
     // Process previous check-ins for trend
-    previousCheckIns.forEach(checkIn => {
+    previousCheckIns.forEach((checkIn: { regionHash: string | null }) => {
       const countryCode = extractCountryCode(checkIn.regionHash || '');
       if (countryStats.has(countryCode)) {
         countryStats.get(countryCode)!.previousCheckIns++;
