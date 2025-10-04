@@ -40,8 +40,10 @@ class EnterpriseTimescaleDB {
       resetTimeout: 10000,
     });
 
-    // Only initialize if TIMESCALEDB_URL is configured
-    if (this.config.master.connectionString) {
+    // Only initialize if TIMESCALEDB_URL is explicitly configured
+    const hasTimescaleUrl = process.env.TIMESCALEDB_URL && process.env.TIMESCALEDB_URL.length > 0;
+
+    if (hasTimescaleUrl) {
       this.masterPool = this.createPool(this.config.master);
       if (this.config.replicas) {
         this.replicaPools = this.config.replicas.map(config => this.createPool(config));
