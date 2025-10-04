@@ -80,6 +80,9 @@ export const metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
   },
+  other: {
+    "google-adsense-account": "ca-pub-5542466886661130",
+  },
 };
 
 interface RootLayoutProps {
