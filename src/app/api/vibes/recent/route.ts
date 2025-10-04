@@ -23,8 +23,7 @@ export async function GET(request: NextRequest) {
     // Build query filters
     const where: any = {
       note: {
-        not: null,
-        not: ''
+        not: null
       }
     };
 
