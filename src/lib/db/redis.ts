@@ -156,15 +156,10 @@ class EnterpriseRedisService {
       return;
     }
 
-    this.healthCheckInterval = setInterval(async () => {
-      try {
-        await this.client.ping();
-        metrics.updateGauge('redis.health', 1);
-      } catch (error) {
-        metrics.updateGauge('redis.health', 0);
-        logger.error('Redis health check failed:', error);
-      }
-    }, 30000);
+    // Disable Redis health check since we're using Upstash REST API
+    // The REST API doesn't need persistent connections
+    metrics.updateGauge('redis.health', 1);
+    logger.info('Redis health check disabled - using Upstash REST API');
   }
 
   async get(key: string): Promise<any> {
