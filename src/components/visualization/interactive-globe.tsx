@@ -188,9 +188,11 @@ export function InteractiveGlobe({
         atmosphereColor={showAtmosphere ? "#6366f1" : undefined}
         atmosphereAltitude={showAtmosphere ? 0.2 : 0}
 
-        // Point hover
-        onHtmlElementHover={handlePointHover}
-        onHtmlElementClick={(point: any) => onPointClick && onPointClick(point)}
+        // Point hover and click
+        {...({
+          onHtmlElementHover: handlePointHover,
+          onHtmlElementClick: (point: any) => onPointClick && onPointClick(point)
+        } as any)}
 
         // Controls
         enablePointerInteraction={true}
