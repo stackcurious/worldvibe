@@ -1,61 +1,89 @@
 "use client";
 
-import { memo, useState, useEffect } from "react";
+import { memo, useState } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Logo } from "@/components/shared/logo";
-import { BarChart3, RefreshCw, PlusCircle } from "lucide-react";
+import { Sparkles, Heart } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/globe', label: 'Explore Globe' },
+  { href: '/checkin', label: 'Check In' },
+  { href: '/about', label: 'About' }
+];
 
 export const Header = memo(function Header() {
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
   const [showCTA, setShowCTA] = useState(true);
+  const pathname = usePathname();
 
   // Detect scroll direction & toggle header visibility
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() ?? 0;
     setHidden(latest > previous && latest > 100);
-    setShowCTA(latest < previous || latest < 100); // Show CTA when scrolling up
+    setShowCTA(latest < previous || latest < 100);
   });
 
   return (
     <>
       {/* Main Header */}
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 px-6 py-3 bg-white/80 dark:bg-black/60 backdrop-blur-lg shadow-md transition-all"
+        className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-gradient-to-r from-indigo-900/90 via-purple-900/90 to-pink-900/90 backdrop-blur-lg shadow-lg border-b border-white/10"
         initial={{ y: 0, opacity: 1 }}
         animate={{ y: hidden ? -100 : 0, opacity: hidden ? 0 : 1 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         <div className="flex items-center justify-between container mx-auto">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
+          <Link href="/" className="flex items-center gap-2">
             <Logo />
+            <span className="text-xl font-bold text-white">WorldVibe</span>
           </Link>
 
-          {/* Navigation Icons */}
-          <div className="flex items-center gap-4">
-            {/* Dashboard Link */}
-            <Link
-              href="/dashboard"
-              className="p-2 rounded-lg bg-white/10 dark:bg-black/20 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-black/30 transition-all"
-            >
-              <BarChart3 className="w-5 h-5" />
-            </Link>
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navItems.map(({ href, label }) => {
+              const isActive = pathname === href;
 
-            {/* Dark Mode Toggle */}
-            <ThemeToggle />
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className="relative py-2"
+                >
+                  <span className={`text-sm font-medium transition-colors ${
+                    isActive ? 'text-yellow-400' : 'text-gray-200 hover:text-white'
+                  }`}>
+                    {label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="navigation-underline"
+                      className="absolute left-0 right-0 bottom-0 h-0.5 bg-yellow-400"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30
+                      }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-            {/* Refresh Button */}
-            <button
-              onClick={() => window.location.reload()}
-              className="p-2 rounded-lg bg-white/10 dark:bg-black/20 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-black/30 transition-all"
-              aria-label="Refresh"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
-          </div>
+          {/* CTA Button */}
+          <Link
+            href="/checkin"
+            className="hidden md:flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-pink-500 rounded-full font-bold text-sm text-white shadow-lg hover:scale-105 transition-transform"
+          >
+            <Heart className="w-4 h-4" />
+            Share Your Vibe
+          </Link>
         </div>
       </motion.header>
 
@@ -67,11 +95,12 @@ export const Header = memo(function Header() {
         transition={{ duration: 0.4, ease: "easeInOut" }}
       >
         <Link
-          href="/check-in"
-          className="px-5 py-4 bg-blue-500 text-white rounded-full shadow-lg flex items-center gap-2 hover:bg-blue-600 transition-all transform hover:scale-105"
+          href="/checkin"
+          className="group relative px-6 py-4 bg-gradient-to-r from-yellow-400 to-pink-500 text-white rounded-full shadow-2xl flex items-center gap-3 hover:scale-105 transition-all overflow-hidden"
         >
-          <PlusCircle className="w-6 h-6" />
-          <span className="font-semibold">Check In</span>
+          <div className="absolute inset-0 bg-white/20 rounded-full blur-xl group-hover:blur-2xl transition-all" />
+          <Sparkles className="w-6 h-6 relative z-10 animate-pulse" />
+          <span className="font-bold text-lg relative z-10">Check In</span>
         </Link>
       </motion.div>
     </>
