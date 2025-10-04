@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -11,6 +12,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Providers } from "@/components/providers";
 import { ToastProvider } from "@/components/ui/use-toast";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 
 export const metadata = {
   title: {
@@ -55,7 +57,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
               />
             </ErrorBoundary>
 
+            {/* Analytics */}
+            <GoogleAnalytics />
             <Analytics />
+            <SpeedInsights />
           </ToastProvider>
         </Providers>
       </body>

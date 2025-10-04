@@ -8,9 +8,9 @@ import { useAnalytics } from '@/hooks/use-analytics';
 
 const navItems = [
   { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/trends', label: 'Trends' },
-  { href: '/regions', label: 'Regions' }
+  { href: '/globe', label: 'Explore Globe' },
+  { href: '/checkin', label: 'Check In' },
+  { href: '/about', label: 'About' }
 ];
 
 export const Navigation = memo(function Navigation() {
