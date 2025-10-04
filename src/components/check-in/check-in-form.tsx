@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Share2, MapPin, Globe, Info, Shield, Loader2, AlertTriangle } from "lucide-react";
 import { EmotionSelector } from "./emotion-selector";
 import { IntensitySlider } from "./intensity-slider";
+import { CountrySelector } from "./country-selector";
 import { LoadingSpinner } from "./loading-spinner";
 import { ProgressIndicator } from "./progress-indicator";
 import { ShareCard } from "./share-card";
@@ -36,7 +37,7 @@ import { WORLD_GEOJSON } from "@/config/geo";
 
 const steps = ["emotion", "intensity", "location", "note", "submit"];
 
-type RegionSource = "geojson" | "provider" | "ip" | "timezone" | "locale" | "manual" | "stored";
+type RegionSource = "geojson" | "provider" | "ip" | "timezone" | "locale" | "manual" | "stored" | "manual_pending" | "fallback" | "emergency";
 
 interface RegionInfo {
   code: string;
@@ -62,6 +63,8 @@ export function CheckInForm() {
   const [showRegionFeedback, setShowRegionFeedback] = useState(false);
   const [detectedPosition, setDetectedPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showCountrySelector, setShowCountrySelector] = useState(false);
+  const [manualCountry, setManualCountry] = useState<{ code: string; name: string; flag: string } | null>(null);
 
   // Device identification
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -259,27 +262,53 @@ export function CheckInForm() {
         }
       } catch {}
 
-      // 6. Final fallback - ensure we always have a region
-      console.log('🌍 Using final fallback region');
+      // 6. Show manual country selection if all auto-detection fails
+      console.log('🌍 Auto-detection failed, showing manual selection');
+      setShowCountrySelector(true);
       setRegionInfo({
         code: "GLOBAL",
         name: "Global",
-        source: "fallback",
-        confidence: 30,
+        source: "manual_pending",
+        confidence: 0,
       });
     } catch (error) {
       console.error('❌ Region detection completely failed:', error);
-      // Emergency fallback
+      // Show manual selection as fallback
+      setShowCountrySelector(true);
       setRegionInfo({
         code: "GLOBAL",
         name: "Global",
-        source: "emergency",
-        confidence: 10,
+        source: "manual_pending",
+        confidence: 0,
       });
     } finally {
       setIsRegionDetecting(false);
     }
   }, [currentRegion, regionName, isRegionLoading, getUserGeolocation, findCountryFromCoordinates]);
+
+  // Handle manual country selection
+  const handleCountrySelect = useCallback((country: { code: string; name: string; flag: string }) => {
+    console.log('🌍 Manual country selected:', country);
+    setManualCountry(country);
+    setRegionInfo({
+      code: country.code,
+      name: country.name,
+      source: "manual",
+      confidence: 100,
+    });
+    setShowCountrySelector(false);
+    
+    // Save the manual selection for future use
+    localStorage.setItem(
+      "worldvibe_preferred_region",
+      JSON.stringify({
+        code: country.code,
+        name: country.name,
+        lastUsed: new Date().toISOString(),
+        source: "manual"
+      })
+    );
+  }, []);
 
   // Initialize
   useEffect(() => {
@@ -387,6 +416,12 @@ export function CheckInForm() {
         return "from your previous selection";
       case "manual":
         return "manually selected";
+      case "manual_pending":
+        return "please select manually";
+      case "fallback":
+        return "using fallback region";
+      case "emergency":
+        return "using emergency fallback";
       default:
         return "detected automatically";
     }
@@ -486,9 +521,20 @@ export function CheckInForm() {
 
                   <div className="flex items-center space-x-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <Globe className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-300">
+                    <span className="text-gray-600 dark:text-gray-300 flex-1">
                       {isRegionDetecting ? "Detecting your region..." : regionInfo ? regionInfo.name : "Select your region"}
                     </span>
+                    {regionInfo?.source === "manual_pending" && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCountrySelector(true)}
+                        className="text-xs"
+                      >
+                        Choose Country
+                      </Button>
+                    )}
                   </div>
 
                   {!detectedPosition && regionInfo?.source !== "geojson" && (
@@ -680,6 +726,14 @@ export function CheckInForm() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Country Selector Modal */}
+      <CountrySelector
+        isOpen={showCountrySelector}
+        onClose={() => setShowCountrySelector(false)}
+        onSelect={handleCountrySelect}
+        selectedCountry={manualCountry}
+      />
     </div>
   );
 }
