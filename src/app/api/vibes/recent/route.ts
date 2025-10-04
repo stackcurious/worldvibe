@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
 
     // Build query filters
     const where: any = {
-      AND: [
-        { note: { not: null } },
-        { note: { not: '' } }
-      ]
+      note: {
+        not: null,
+        not: ''
+      }
     };
 
     if (emotion) {
