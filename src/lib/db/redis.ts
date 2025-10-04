@@ -370,6 +370,28 @@ class EnterpriseRedisService {
     });
   }
 
+  async rpush(key: string, ...values: string[]): Promise<number> {
+    return this.circuitBreaker.execute(async () => {
+      try {
+        return await this.client.rpush(key, ...values);
+      } catch (error) {
+        logger.error('Redis RPUSH error:', { key, error });
+        throw error;
+      }
+    });
+  }
+
+  async ltrim(key: string, start: number, stop: number): Promise<'OK'> {
+    return this.circuitBreaker.execute(async () => {
+      try {
+        return await this.client.ltrim(key, start, stop);
+      } catch (error) {
+        logger.error('Redis LTRIM error:', { key, error });
+        throw error;
+      }
+    });
+  }
+
   // TTL operation
   async ttl(key: string): Promise<number> {
     return this.circuitBreaker.execute(async () => {

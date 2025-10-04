@@ -137,7 +137,8 @@ export class CheckInService {
         note: params.note || null,
         regionHash: params.regionHash,
         timestamp: params.timestamp,
-        location: params.coordinates ? this.formatGeoPoint(params.coordinates) : null,
+        latitude: params.coordinates?.latitude || null,
+        longitude: params.coordinates?.longitude || null,
         sessionId: params.sessionId,
         userAgent: params.userAgent,
         dataRetention,
@@ -208,10 +209,8 @@ export class CheckInService {
             sessionId: checkIn.sessionId,
             dataRetention: checkIn.dataRetention,
             privacyVersion: checkIn.privacyVersion,
-            // Handle PostGIS point if coordinates are present
-            ...(checkIn.location ? {
-              location: { set: checkIn.location },
-            } : {}),
+            latitude: checkIn.latitude,
+            longitude: checkIn.longitude,
           },
         });
         
@@ -442,13 +441,6 @@ export class CheckInService {
     return `${year}-${month}-${day}`;
   }
   
-  /**
-   * Format coordinates as a PostGIS point
-   */
-  private formatGeoPoint(coordinates: Coordinates): any {
-    // For PostGIS, the format is 'POINT(longitude latitude)'
-    return { point: `POINT(${coordinates.longitude} ${coordinates.latitude})` };
-  }
   
   /**
    * Detect device type from user agent

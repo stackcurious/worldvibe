@@ -26,140 +26,135 @@ model BaseModel {
 
 // Main check-in model
 model CheckIn {
-  id            String     @id @default(uuid())
-  deviceId      String                         // Hashed device identifier
-  regionHash    String                         // Anonymized region
-  emotion       String                         // Emotion type (JOY, CALM, etc.)
-  intensity     Int
-  createdAt     DateTime   @default(now())
-  processedAt   DateTime?
-  note          String?
-  
+  id          String    @id @default(uuid())
+  deviceId    String // Hashed device identifier
+  regionHash  String // Anonymized region
+  emotion     String // Emotion type (JOY, CALM, etc.)
+  intensity   Int
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+  note        String?
+
   // Location data (simple lat/long for SQLite)
-  latitude      Float?
-  longitude     Float?
-  accuracy      Float?                         // Location accuracy in meters
-  
+  latitude  Float?
+  longitude Float?
+  accuracy  Float? // Location accuracy in meters
+
   // Device information
-  deviceType    String     @default("OTHER")   // MOBILE, TABLET, DESKTOP, OTHER
-  deviceHash    String                         // Device fingerprint
-  userAgent     String?
-  
+  deviceType String  @default("OTHER") // MOBILE, TABLET, DESKTOP, OTHER
+  deviceHash String // Device fingerprint
+  userAgent  String?
+
   // Analytics fields
-  sessionId     String?
-  source        String?                        // Traffic source
-  
+  sessionId String?
+  source    String? // Traffic source
+
   // Privacy and compliance
-  dataRetention DateTime                       // When to delete this record
-  privacyVersion Int       @default(1)         // For privacy policy tracking
-  
+  dataRetention  DateTime // When to delete this record
+  privacyVersion Int      @default(1) // For privacy policy tracking
+
   // Metadata
-  metadata      String?                        // JSON stored as string
-  
+  metadata String? // JSON stored as string
+
   // Relations
-  session       Session?   @relation(fields: [sessionId], references: [id])
-  analytics     Analytics[]
-  
+  session   Session?    @relation(fields: [sessionId], references: [id])
+  analytics Analytics[]
+
   // Indexes for query optimization
   @@index([regionHash, createdAt])
   @@index([emotion, createdAt])
   @@index([deviceId, createdAt])
   @@index([processedAt])
   @@index([dataRetention])
-  
   @@map("check_ins")
 }
 
 // Session tracking for analytics
 model Session {
-  id            String    @id @default(uuid())
-  startedAt     DateTime  @default(now())
-  endedAt       DateTime?
-  deviceId      String    
-  
+  id        String    @id @default(uuid())
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  deviceId  String
+
   // Session attributes
-  duration      Int?                         // Session duration in seconds
-  pageViews     Int       @default(1)
-  bounced       Boolean   @default(true)     // Single page visit
-  
+  duration  Int? // Session duration in seconds
+  pageViews Int     @default(1)
+  bounced   Boolean @default(true) // Single page visit
+
   // Relations
-  checkIns      CheckIn[]
-  events        Event[]
-  
+  checkIns CheckIn[]
+  events   Event[]
+
   @@index([deviceId, startedAt])
   @@index([startedAt])
-  
   @@map("sessions")
 }
 
 // Analytics events
 model Event {
-  id            String    @id @default(uuid())
-  sessionId     String
-  eventType     String
-  createdAt     DateTime  @default(now())
-  properties    String?   // JSON stored as string
-  
+  id         String   @id @default(uuid())
+  sessionId  String
+  eventType  String
+  createdAt  DateTime @default(now())
+  properties String? // JSON stored as string
+
   // Relations
-  session       Session   @relation(fields: [sessionId], references: [id])
-  
+  session Session @relation(fields: [sessionId], references: [id])
+
   @@index([sessionId, createdAt])
   @@index([eventType, createdAt])
-  
   @@map("events")
 }
 
 // Analytics aggregations
 model Analytics {
-  id            String    @id @default(uuid())
-  checkInId     String
-  periodStart   DateTime
-  periodEnd     DateTime
-  
+  id          String   @id @default(uuid())
+  checkInId   String
+  periodStart DateTime
+  periodEnd   DateTime
+
   // Metrics
-  emotionCounts String    // JSON stored as string
+  emotionCounts String // JSON stored as string
   totalCheckins Int
   avgIntensity  Float
-  
+
   // Relations
-  checkIn       CheckIn   @relation(fields: [checkInId], references: [id])
-  
+  checkIn CheckIn @relation(fields: [checkInId], references: [id])
+
   @@unique([checkInId, periodStart, periodEnd])
   @@index([periodStart, periodEnd])
-  
   @@map("analytics")
 }
 
 // Rate limiting and security
 model RateLimit {
-  id            String    @id  // Composite key: type:identifier
-  count         Int       @default(1)
-  expiresAt     DateTime
-  createdAt     DateTime  @default(now())
-  
+  id        String   @id // Composite key: type:identifier
+  count     Int      @default(1)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
   @@index([expiresAt])
   @@map("rate_limits")
 }
 
 // Privacy consent tracking
 model PrivacyConsent {
-  id            String    @id @default(uuid())
-  deviceId      String
-  version       Int
-  consentedAt   DateTime  @default(now())
-  revokedAt     DateTime?
-  preferences   String    // JSON stored as string
-  
+  id          String    @id @default(uuid())
+  deviceId    String
+  version     Int
+  consentedAt DateTime  @default(now())
+  revokedAt   DateTime?
+  preferences String // JSON stored as string
+
   @@unique([deviceId, version])
   @@index([deviceId, consentedAt])
-  
   @@map("privacy_consents")
 }
 
 // Table for real-time analytics
 model RealtimeStats {
-  regionHash    String    @id
-  emotionCounts String    // JSON stored as string
+  regionHash    String   @id
+  emotionCounts String // JSON stored as string
   lastUpdated   DateTime
 
   @@map("realtime_stats")
@@ -167,22 +162,21 @@ model RealtimeStats {
 
 // Email reminder subscriptions
 model EmailReminder {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  deviceId        String    // Associate with device for check-in tracking
-  timezone        String    @default("UTC")
-  preferredTime   String    @default("09:00") // HH:MM format
-  isActive        Boolean   @default(true)
-  frequency       String    @default("DAILY") // DAILY, WEEKLY, CUSTOM
-  lastReminderAt  DateTime?
-  subscribedAt    DateTime  @default(now())
-  unsubscribedAt  DateTime?
-  verifiedAt      DateTime?
+  id                String    @id @default(uuid())
+  email             String    @unique
+  deviceId          String // Associate with device for check-in tracking
+  timezone          String    @default("UTC")
+  preferredTime     String    @default("09:00") // HH:MM format
+  isActive          Boolean   @default(true)
+  frequency         String    @default("DAILY") // DAILY, WEEKLY, CUSTOM
+  lastReminderAt    DateTime?
+  subscribedAt      DateTime  @default(now())
+  unsubscribedAt    DateTime?
+  verifiedAt        DateTime?
   verificationToken String?
 
   @@index([isActive, lastReminderAt])
   @@index([deviceId])
   @@index([email])
-
   @@map("email_reminders")
 }
