@@ -41,11 +41,96 @@ interface CountryData {
   activityScore: number;
 }
 
+// Mock data for initial display
+const MOCK_COUNTRIES: CountryData[] = [
+  {
+    country: "United States",
+    flag: "🇺🇸",
+    checkIns: 1247,
+    trend: 12,
+    dominantEmotion: "joy",
+    emotionBreakdown: { joy: 42, calm: 28, stress: 15, anticipation: 10, sadness: 5 },
+    localTime: "10:30 AM",
+    activityScore: 95,
+  },
+  {
+    country: "United Kingdom",
+    flag: "🇬🇧",
+    checkIns: 832,
+    trend: 8,
+    dominantEmotion: "calm",
+    emotionBreakdown: { calm: 38, joy: 32, stress: 18, sadness: 7, anticipation: 5 },
+    localTime: "3:30 PM",
+    activityScore: 87,
+  },
+  {
+    country: "India",
+    flag: "🇮🇳",
+    checkIns: 2156,
+    trend: 24,
+    dominantEmotion: "anticipation",
+    emotionBreakdown: { anticipation: 45, joy: 30, calm: 15, stress: 8, sadness: 2 },
+    localTime: "8:00 PM",
+    activityScore: 98,
+  },
+  {
+    country: "Germany",
+    flag: "🇩🇪",
+    checkIns: 567,
+    trend: -3,
+    dominantEmotion: "calm",
+    emotionBreakdown: { calm: 40, joy: 25, stress: 20, sadness: 10, anticipation: 5 },
+    localTime: "4:30 PM",
+    activityScore: 72,
+  },
+  {
+    country: "Japan",
+    flag: "🇯🇵",
+    checkIns: 945,
+    trend: 15,
+    dominantEmotion: "stress",
+    emotionBreakdown: { stress: 35, calm: 30, joy: 20, sadness: 10, anticipation: 5 },
+    localTime: "11:30 PM",
+    activityScore: 88,
+  },
+  {
+    country: "Brazil",
+    flag: "🇧🇷",
+    checkIns: 1034,
+    trend: 18,
+    dominantEmotion: "joy",
+    emotionBreakdown: { joy: 48, calm: 22, anticipation: 18, stress: 8, sadness: 4 },
+    localTime: "11:30 AM",
+    activityScore: 91,
+  },
+  {
+    country: "Australia",
+    flag: "🇦🇺",
+    checkIns: 423,
+    trend: 5,
+    dominantEmotion: "calm",
+    emotionBreakdown: { calm: 45, joy: 35, anticipation: 10, stress: 7, sadness: 3 },
+    localTime: "12:30 AM",
+    activityScore: 68,
+  },
+  {
+    country: "Canada",
+    flag: "🇨🇦",
+    checkIns: 678,
+    trend: 9,
+    dominantEmotion: "joy",
+    emotionBreakdown: { joy: 40, calm: 32, anticipation: 15, stress: 10, sadness: 3 },
+    localTime: "10:30 AM",
+    activityScore: 82,
+  },
+];
+
 export function CountryGrid() {
-  const [countries, setCountries] = useState<CountryData[]>([]);
+  const [countries, setCountries] = useState<CountryData[]>(MOCK_COUNTRIES);
   const [loading, setLoading] = useState(true);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"checkIns" | "trend">("checkIns");
+  const [usingMockData, setUsingMockData] = useState(true);
 
   useEffect(() => {
     fetchCountryData();
@@ -61,9 +146,11 @@ export function CountryGrid() {
 
       if (data.countries && data.countries.length > 0) {
         setCountries(data.countries);
+        setUsingMockData(false);
       }
     } catch (error) {
       console.error('Error fetching country data:', error);
+      // Keep using mock data on error
     } finally {
       setLoading(false);
     }
@@ -297,7 +384,15 @@ export function CountryGrid() {
         transition={{ delay: 0.5 }}
         className="mt-8 text-center text-gray-400 text-sm"
       >
-        Showing {countries.length} active {countries.length === 1 ? 'country' : 'countries'} • Updated in real-time • Refreshes every 30 seconds
+        {usingMockData ? (
+          <>
+            <span className="text-yellow-400">⚡ Preview mode</span> • Showing sample data • Real data will appear automatically when check-ins are submitted
+          </>
+        ) : (
+          <>
+            Showing {countries.length} active {countries.length === 1 ? 'country' : 'countries'} • Updated in real-time • Refreshes every 30 seconds
+          </>
+        )}
       </motion.div>
     </div>
   );

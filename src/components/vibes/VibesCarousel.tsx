@@ -31,11 +31,88 @@ const EMOTION_EMOJI: Record<string, string> = {
   anticipation: '🤩',
 };
 
+// Mock vibes for initial display
+const MOCK_VIBES: Vibe[] = [
+  {
+    id: 'mock-1',
+    emotion: 'joy',
+    intensity: 4,
+    reason: "Just landed my dream job! All the hard work finally paid off 🎉",
+    region: "San Francisco, US",
+    timestamp: new Date(Date.now() - 300000).toISOString(), // 5 min ago
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-2',
+    emotion: 'calm',
+    intensity: 5,
+    reason: "Morning meditation by the ocean. The waves sound like pure peace.",
+    region: "Sydney, AU",
+    timestamp: new Date(Date.now() - 600000).toISOString(), // 10 min ago
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-3',
+    emotion: 'anticipation',
+    intensity: 5,
+    reason: "First date tonight with someone special. Butterflies everywhere!",
+    region: "London, UK",
+    timestamp: new Date(Date.now() - 900000).toISOString(), // 15 min ago
+    deviceType: 'desktop',
+  },
+  {
+    id: 'mock-4',
+    emotion: 'stress',
+    intensity: 3,
+    reason: "Finals week is brutal but I've got this. Coffee is my best friend right now.",
+    region: "Toronto, CA",
+    timestamp: new Date(Date.now() - 1200000).toISOString(), // 20 min ago
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-5',
+    emotion: 'joy',
+    intensity: 5,
+    reason: "My baby said 'mama' for the first time! My heart is so full ❤️",
+    region: "Tokyo, JP",
+    timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 min ago
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-6',
+    emotion: 'calm',
+    intensity: 4,
+    reason: "Finished a great book and having tea on my balcony. Simple pleasures.",
+    region: "Berlin, DE",
+    timestamp: new Date(Date.now() - 2400000).toISOString(), // 40 min ago
+    deviceType: 'tablet',
+  },
+  {
+    id: 'mock-7',
+    emotion: 'anticipation',
+    intensity: 4,
+    reason: "Boarding my flight to Paris! First international trip in years!",
+    region: "New York, US",
+    timestamp: new Date(Date.now() - 3000000).toISOString(), // 50 min ago
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-8',
+    emotion: 'joy',
+    intensity: 5,
+    reason: "Just adopted the cutest puppy from the shelter. Meet Luna! 🐶",
+    region: "Mumbai, IN",
+    timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+    deviceType: 'mobile',
+  },
+];
+
 export function VibesCarousel() {
-  const [vibes, setVibes] = useState<Vibe[]>([]);
+  const [vibes, setVibes] = useState<Vibe[]>(MOCK_VIBES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [direction, setDirection] = useState(0);
+  const [usingMockData, setUsingMockData] = useState(true);
 
   useEffect(() => {
     const fetchVibes = async () => {
@@ -44,9 +121,13 @@ export function VibesCarousel() {
         if (!response.ok) throw new Error('Failed to fetch');
 
         const data = await response.json();
-        setVibes(data.vibes || []);
+        if (data.vibes && data.vibes.length > 0) {
+          setVibes(data.vibes);
+          setUsingMockData(false);
+        }
       } catch (err) {
         console.error('Error fetching vibes:', err);
+        // Keep using mock data on error
       } finally {
         setLoading(false);
       }
@@ -225,10 +306,19 @@ export function VibesCarousel() {
         ))}
       </div>
 
-      {/* Live indicator */}
+      {/* Live indicator / Preview mode */}
       <div className="absolute top-4 right-4 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-        <span className="text-xs text-gray-400">Live</span>
+        {usingMockData ? (
+          <>
+            <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+            <span className="text-xs text-yellow-400">Preview</span>
+          </>
+        ) : (
+          <>
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs text-gray-400">Live</span>
+          </>
+        )}
       </div>
     </div>
   );
