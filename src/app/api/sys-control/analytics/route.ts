@@ -18,21 +18,21 @@ export async function GET() {
 
     // Active devices today
     const activeToday = await prisma.checkIn.findMany({
-      where: { timestamp: { gte: today } },
+      where: { createdAt: { gte: today } },
       select: { deviceId: true },
       distinct: ['deviceId']
     });
 
     // Active devices this week
     const activeThisWeek = await prisma.checkIn.findMany({
-      where: { timestamp: { gte: weekAgo } },
+      where: { createdAt: { gte: weekAgo } },
       select: { deviceId: true },
       distinct: ['deviceId']
     });
 
     // Active devices this month
     const activeThisMonth = await prisma.checkIn.findMany({
-      where: { timestamp: { gte: monthAgo } },
+      where: { createdAt: { gte: monthAgo } },
       select: { deviceId: true },
       distinct: ['deviceId']
     });
@@ -42,8 +42,8 @@ export async function GET() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const checkIns = await prisma.checkIn.findMany({
-      where: { timestamp: { gte: thirtyDaysAgo } },
-      select: { timestamp: true, deviceId: true }
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true, deviceId: true }
     });
 
     // Group by date and count unique devices
@@ -55,8 +55,8 @@ export async function GET() {
       dailyDeviceMap.set(dateKey, new Set());
     }
 
-    checkIns.forEach(checkIn => {
-      const dateKey = checkIn.timestamp.toISOString().split('T')[0];
+    checkIns.forEach((checkIn: { createdAt: Date; deviceId: string }) => {
+      const dateKey = checkIn.createdAt.toISOString().split('T')[0];
       const deviceSet = dailyDeviceMap.get(dateKey);
       if (deviceSet) {
         deviceSet.add(checkIn.deviceId);
@@ -90,7 +90,7 @@ export async function GET() {
 
     const devicesYesterday = await prisma.checkIn.findMany({
       where: {
-        timestamp: { gte: yesterday, lt: today }
+        createdAt: { gte: yesterday, lt: today }
       },
       select: { deviceId: true },
       distinct: ['deviceId']
@@ -98,7 +98,7 @@ export async function GET() {
 
     const devicesTwoDaysAgo = await prisma.checkIn.findMany({
       where: {
-        timestamp: { gte: twoDaysAgo, lt: yesterday }
+        createdAt: { gte: twoDaysAgo, lt: yesterday }
       },
       select: { deviceId: true },
       distinct: ['deviceId']
@@ -117,14 +117,14 @@ export async function GET() {
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 7);
 
     const devicesThisWeek = await prisma.checkIn.findMany({
-      where: { timestamp: { gte: weekAgo } },
+      where: { createdAt: { gte: weekAgo } },
       select: { deviceId: true },
       distinct: ['deviceId']
     });
 
     const devicesLastWeek = await prisma.checkIn.findMany({
       where: {
-        timestamp: { gte: twoWeeksAgo, lt: weekAgo }
+        createdAt: { gte: twoWeeksAgo, lt: weekAgo }
       },
       select: { deviceId: true },
       distinct: ['deviceId']
