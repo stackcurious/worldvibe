@@ -89,15 +89,13 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <body className={`${GeistSans.className} antialiased`}>
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5542466886661130"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-      </head>
-      <body className={`${GeistSans.className} antialiased`}>
         <Providers>
           {/* Add ToastProvider from our custom implementation */}
           <ToastProvider>
