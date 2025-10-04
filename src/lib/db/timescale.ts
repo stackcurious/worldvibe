@@ -40,15 +40,22 @@ class EnterpriseTimescaleDB {
       resetTimeout: 10000,
     });
 
-    this.masterPool = this.createPool(this.config.master);
-    if (this.config.replicas) {
-      this.replicaPools = this.config.replicas.map(config => this.createPool(config));
-    }
+    // Only initialize if TIMESCALEDB_URL is configured
+    if (this.config.master.connectionString) {
+      this.masterPool = this.createPool(this.config.master);
+      if (this.config.replicas) {
+        this.replicaPools = this.config.replicas.map(config => this.createPool(config));
+      }
 
-    this.prisma = new PrismaClient();
-    this.setupEventHandlers();
-    this.initializeTimescaleDB();
-    this.startHealthCheck();
+      this.prisma = new PrismaClient();
+      this.setupEventHandlers();
+      this.initializeTimescaleDB().catch(err => {
+        logger.warn('TimescaleDB initialization failed - continuing without it', { error: String(err) });
+      });
+      this.startHealthCheck();
+    } else {
+      logger.info('TimescaleDB not configured - running without time-series features');
+    }
   }
 
   private loadConfiguration(): TimescaleConfig {
@@ -274,9 +281,15 @@ class EnterpriseTimescaleDB {
       timeout?: number;
     } = {}
   ): Promise<T[]> {
+    // Return empty array if TimescaleDB is not configured
+    if (!this.masterPool) {
+      logger.debug('TimescaleDB not configured, skipping query');
+      return [];
+    }
+
     const { useReplica = false, retryCount = 0, timeout = this.config.queryTimeout } = options;
     const start = Date.now();
-    
+
     return this.circuitBreaker.execute(async () => {
       const pool = useReplica && this.replicaPools.length > 0
         ? this.replicaPools[Math.floor(Math.random() * this.replicaPools.length)]
