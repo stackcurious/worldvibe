@@ -67,7 +67,7 @@ class TokenHandler {
   }
 
   private async hashContext(context: Record<string, string>): Promise<string> {
-    return await sha256Hex(JSON.stringify(context) + this.salt);
+    return sha256Hex(JSON.stringify(context) + this.salt);
   }
 
   private isValidTokenFormat(token: string): boolean {

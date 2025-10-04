@@ -90,7 +90,7 @@ export async function hashDeviceIdentifier(deviceId: string): Promise<string> {
     const salt = getDeviceSalt();
     
     // Use the existing sha256Hex function
-    return await sha256Hex(deviceId + salt);
+    return sha256Hex(deviceId + salt);
   } catch (error) {
     logger.error('Error hashing device identifier', {
       error: error instanceof Error ? error.message : String(error)

@@ -87,7 +87,7 @@ class RegionHasher {
       }
 
       // Generate a new hash
-      const hash = await this.generateHash(region, options);
+      const hash = this.generateHash(region, options);
 
       // Cache the result
       await this.cacheHash(region, hash, options.expiry);
@@ -189,21 +189,19 @@ class RegionHasher {
   /**
    * Create a secure hash for the region
    */
-  private async generateHash(region: string, options: RegionHashOptions): Promise<string> {
+  private generateHash(region: string, options: RegionHashOptions): string {
     const precision = options.precision || this.defaultPrecision;
     const effectiveSalt = options.salt || this.salt;
-    
+
     try {
-      // Create a salted hash
-      const hash = await sha256Hex(`${region}:${effectiveSalt}`);
-      
+      // Create a salted hash (synchronous)
+      const hash = sha256Hex(`${region}:${effectiveSalt}`);
+
       // Prefix for identification and return with specified precision
       return `${this.REGION_KEY_PREFIX}${hash.slice(0, precision * 2)}`;
     } catch (error) {
       logger.error("Error generating region hash", { error: String(error) });
-      // Fallback to sync method if async fails
-      const hash = sha256Hex(`${region}:${effectiveSalt}`);
-      return `${this.REGION_KEY_PREFIX}${hash.slice(0, precision * 2)}`;
+      throw error;
     }
   }
 
