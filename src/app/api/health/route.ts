@@ -23,10 +23,10 @@ export const revalidate = 0;
 export async function GET() {
   const startTime = Date.now();
   
-  // Check database connection
+  // Check database connection (using findFirst for pgbouncer compatibility)
   let databaseHealthy = false;
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.checkIn.findFirst({ take: 1 });
     databaseHealthy = true;
   } catch (error) {
     metrics.increment('health_check.database.error');
@@ -112,8 +112,8 @@ export async function GET() {
 // Also export metrics endpoint
 export async function HEAD() {
   try {
-    // Simple check to see if the database is responding
-    await prisma.$queryRaw`SELECT 1`;
+    // Simple check to see if the database is responding (using findFirst for pgbouncer compatibility)
+    await prisma.checkIn.findFirst({ take: 1 });
     return new Response(null, { status: 200 });
   } catch (error) {
     return new Response(null, { status: 503 });

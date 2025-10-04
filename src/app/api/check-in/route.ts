@@ -208,9 +208,9 @@ export async function POST(request: NextRequest) {
       regionHash = await regionHasher.hashRegion('GLOBAL');
     }
 
-    // Pre-flight database health check
+    // Pre-flight database health check (using findFirst instead of $queryRaw for pgbouncer compatibility)
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      await prisma.checkIn.findFirst({ take: 1 });
     } catch (dbError) {
       logger.error('Database health check failed before check-in', {
         error: dbError instanceof Error ? dbError.message : String(dbError),
