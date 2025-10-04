@@ -13,8 +13,8 @@ import { logger } from '@/lib/logger';
  */
 export async function checkDatabaseConnection(): Promise<boolean> {
   try {
-    // Simple query to test connection
-    await prisma.$queryRaw`SELECT 1 as connection_test`;
+    // Simple query to test connection (using findFirst for pgbouncer compatibility)
+    await prisma.checkIn.findFirst({ take: 1 });
     logger.info('Database connection successful');
     return true;
   } catch (error) {
