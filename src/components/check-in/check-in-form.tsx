@@ -255,8 +255,27 @@ export function CheckInForm() {
             source: "locale",
             confidence: 50,
           });
+          return;
         }
       } catch {}
+
+      // 6. Final fallback - ensure we always have a region
+      console.log('🌍 Using final fallback region');
+      setRegionInfo({
+        code: "GLOBAL",
+        name: "Global",
+        source: "fallback",
+        confidence: 30,
+      });
+    } catch (error) {
+      console.error('❌ Region detection completely failed:', error);
+      // Emergency fallback
+      setRegionInfo({
+        code: "GLOBAL",
+        name: "Global",
+        source: "emergency",
+        confidence: 10,
+      });
     } finally {
       setIsRegionDetecting(false);
     }
@@ -282,11 +301,14 @@ export function CheckInForm() {
 
     setIsSubmitting(true);
     try {
+      // Ensure we always have a region, even if detection failed
+      const regionCode = regionInfo?.code || currentRegion || 'GLOBAL';
+      
       const payload = {
         emotion,
         intensity,
         note,
-        region: regionInfo?.code,
+        region: regionCode,
         timestamp: new Date().toISOString(),
         ...(detectedPosition && {
           coordinates: {

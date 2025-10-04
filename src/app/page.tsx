@@ -17,10 +17,7 @@ import {
 import FloatingCTA from "@/components/ui/FloatingCTA";
 import { LiveCheckInToast } from "@/components/notifications/live-checkin-toast";
 import { CountryGrid } from "@/components/landing/country-grid";
-import { TrendingKeywords } from "@/components/trending/TrendingKeywords";
-import { EmotionWordCloud } from "@/components/trending/EmotionWordCloud";
-import { RecentVibes } from "@/components/vibes/RecentVibes";
-import { EmotionReasons } from "@/components/vibes/EmotionReasons";
+import { VibesCarousel } from "@/components/vibes/VibesCarousel";
 
 // Emotion colors matching our config
 const EMOTION_COLORS = {
@@ -291,7 +288,7 @@ export default function LandingPage() {
         <EmotionWave />
       </section>
 
-      {/* Trending Keywords Section */}
+      {/* Live Vibes Carousel */}
       <section className="relative z-10 container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0 }}
@@ -308,92 +305,11 @@ export default function LandingPage() {
               <TrendingUp className="w-4 h-4 text-purple-400" />
               <span className="text-sm font-medium text-purple-200">What's on everyone's mind</span>
             </motion.div>
-            <h2 className="text-5xl font-bold mb-4">Trending Vibes</h2>
+            <h2 className="text-5xl font-bold mb-4">Live from Around the World</h2>
             <p className="text-xl text-gray-300">Real conversations from real people, right now</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {/* Global Trending */}
-            <motion.div
-              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <TrendingKeywords limit={12} refreshInterval={30000} />
-            </motion.div>
-
-            {/* Recent Vibes - What people are saying */}
-            <motion.div
-              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                Why People Feel This Way
-              </h3>
-              <RecentVibes limit={8} refreshInterval={30000} />
-            </motion.div>
-
-            {/* Emotion Word Cloud */}
-            <motion.div
-              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Joy Wordcloud
-              </h3>
-              <EmotionWordCloud emotion="joy" limit={20} refreshInterval={30000} />
-            </motion.div>
-          </div>
-
-          {/* Emotion-specific trending tabs */}
-          <motion.div
-            className="grid grid-cols-2 md:grid-cols-5 gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            {[
-              { emotion: 'joy', emoji: '😊', color: EMOTION_COLORS.joy },
-              { emotion: 'calm', emoji: '😌', color: EMOTION_COLORS.calm },
-              { emotion: 'anticipation', emoji: '🤩', color: EMOTION_COLORS.anticipation },
-              { emotion: 'stress', emoji: '😰', color: EMOTION_COLORS.stress },
-              { emotion: 'sadness', emoji: '😢', color: EMOTION_COLORS.sadness },
-            ].map((item) => (
-              <motion.div
-                key={item.emotion}
-                className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
-                whileHover={{ scale: 1.05, y: -5 }}
-                style={{ borderColor: `${item.color}40` }}
-              >
-                <div className="text-3xl text-center mb-2">{item.emoji}</div>
-                <div className="capitalize text-center text-white font-medium mb-4">
-                  {item.emotion}
-                </div>
-
-                {/* Reasons why people feel this way */}
-                <EmotionReasons
-                  emotion={item.emotion}
-                  emoji={item.emoji}
-                  color={item.color}
-                  limit={5}
-                />
-
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <TrendingKeywords
-                    emotion={item.emotion}
-                    limit={3}
-                    refreshInterval={45000}
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          <VibesCarousel />
         </motion.div>
       </section>
 

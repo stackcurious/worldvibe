@@ -17,28 +17,80 @@ export function RegionProvider({ children }: { children: React.ReactNode }) {
  const [regionName, setRegionName] = useState<string | null>(null);
  const [isLoading, setIsLoading] = useState(true);
 
- useEffect(() => {
-   const detectRegion = async () => {
-     try {
-       // You might want to use a geolocation service here
-       // This is a simplified example
-       const response = await fetch('https://ipapi.co/json/');
-       const data = await response.json();
-       
-       setCurrentRegion(data.country_code);
-       setRegionName(data.country_name);
-     } catch (error) {
-       console.error('Error detecting region:', error);
-       // Fallback to a default region
-       setCurrentRegion('GLOBAL');
-       setRegionName('Global');
-     } finally {
-       setIsLoading(false);
-     }
-   };
+  useEffect(() => {
+    const detectRegion = async () => {
+      try {
+        // Try multiple region detection services for better reliability
+        const services = [
+          'https://ipapi.co/json/',
+          'https://ip-api.com/json/',
+          'https://api.ipify.org?format=json'
+        ];
 
-   detectRegion();
- }, []);
+        let regionDetected = false;
+        
+        for (const service of services) {
+          try {
+            console.log(`🌍 Trying region detection service: ${service}`);
+            const response = await fetch(service, {
+              timeout: 5000,
+              headers: {
+                'Accept': 'application/json',
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('✅ Region detection successful:', data);
+              
+              // Handle different API response formats
+              let countryCode = data.country_code || data.countryCode || data.country;
+              let countryName = data.country_name || data.countryName || data.country;
+              
+              if (countryCode && countryCode !== 'XX') {
+                setCurrentRegion(countryCode.toUpperCase());
+                setRegionName(countryName || countryCode);
+                regionDetected = true;
+                break;
+              }
+            }
+          } catch (serviceError) {
+            console.warn(`⚠️ Region detection service failed: ${service}`, serviceError);
+            continue;
+          }
+        }
+
+        if (!regionDetected) {
+          // Fallback to timezone-based detection
+          try {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const [continent, city] = timezone.split("/");
+            if (continent && city) {
+              console.log('🕐 Using timezone fallback:', timezone);
+              setCurrentRegion(continent.toUpperCase());
+              setRegionName(city.replace("_", " "));
+            } else {
+              throw new Error('Invalid timezone format');
+            }
+          } catch (timezoneError) {
+            console.warn('⚠️ Timezone fallback failed:', timezoneError);
+            // Final fallback
+            setCurrentRegion('GLOBAL');
+            setRegionName('Global');
+          }
+        }
+      } catch (error) {
+        console.error('❌ All region detection methods failed:', error);
+        // Final fallback
+        setCurrentRegion('GLOBAL');
+        setRegionName('Global');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    detectRegion();
+  }, []);
 
  const setRegion = (region: string) => {
    setCurrentRegion(region);
