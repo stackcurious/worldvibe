@@ -16,19 +16,32 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    amplitude.init(process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY!);
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+    if (apiKey && apiKey.trim() !== '') {
+      amplitude.init(apiKey);
+    }
   }, []);
 
   useEffect(() => {
-    amplitude.logEvent('page_view', {
-      path: pathname,
-      query: Object.fromEntries(searchParams.entries()),
-      url: window.location.href
-    });
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+    if (apiKey && apiKey.trim() !== '') {
+      amplitude.logEvent('page_view', {
+        path: pathname,
+        query: Object.fromEntries(searchParams.entries()),
+        url: window.location.href
+      });
+    }
   }, [pathname, searchParams]);
 
+  const trackEvent = (name: string, properties?: Record<string, any>) => {
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+    if (apiKey && apiKey.trim() !== '') {
+      amplitude.logEvent(name, properties);
+    }
+  };
+
   return (
-    <AnalyticsContext.Provider value={{ trackEvent: amplitude.logEvent }}>
+    <AnalyticsContext.Provider value={{ trackEvent }}>
       {children}
     </AnalyticsContext.Provider>
   );

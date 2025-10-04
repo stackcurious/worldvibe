@@ -1,7 +1,7 @@
 // src/app/api/check-ins/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
-import { redis } from "@/lib/db/redis";
+// import { redis } from "@/lib/db/redis"; // Temporarily disabled - Redis connection issues
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
 
@@ -30,20 +30,8 @@ export async function GET(request: NextRequest) {
     const emotion = searchParams.get('emotion');
     const region = searchParams.get('region');
 
-    // Try cache first (only for default query - page 1)
-    if (!emotion && !region && page === 1) {
-      const cached = await redis.get(CACHE_KEY);
-      if (cached) {
-        metrics.increment('api.check_ins.cache_hit');
-        const cachedItems = JSON.parse(cached);
-        return NextResponse.json({
-          items: cachedItems,
-          nextCursor: cachedItems.length >= limit ? 2 : null,
-          totalCount: cachedItems.length,
-          timestamp: new Date().toISOString()
-        });
-      }
-    }
+    // Redis temporarily disabled - connection issues with Upstash
+    // TODO: Fix Redis connection and re-enable caching
 
     // Build query filters
     const where: any = {};
@@ -103,7 +91,12 @@ export async function GET(request: NextRequest) {
 
     // Cache default query result
     if (!emotion && !region && page === 1) {
-      await redis.set(CACHE_KEY, JSON.stringify(formattedCheckIns), { ex: CACHE_TTL });
+      try {
+        await redis.set(CACHE_KEY, JSON.stringify(formattedCheckIns), { ex: CACHE_TTL });
+      } catch (cacheError) {
+        // If Redis fails, continue without caching
+        logger.warn('Redis cache set failed, continuing without cache', { error: cacheError });
+      }
     }
 
     metrics.increment('api.check_ins.success');
