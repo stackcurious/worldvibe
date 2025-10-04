@@ -2,144 +2,104 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Loader2 } from "lucide-react";
 
-const EMOTION_COLORS = {
+const EMOTION_COLORS: Record<string, string> = {
   joy: "#FFB800",
   calm: "#4CAF50",
   stress: "#F44336",
   anticipation: "#FF9800",
   sadness: "#2196F3",
+  happy: "#FFB800",
+  anxious: "#FF9800",
+  excited: "#FF6B35",
+  grateful: "#10B981",
+  frustrated: "#EF4444",
 };
 
-const EMOTION_EMOJIS = {
+const EMOTION_EMOJIS: Record<string, string> = {
   joy: "😊",
   calm: "😌",
   stress: "😰",
   anticipation: "🤩",
   sadness: "😢",
+  happy: "😊",
+  anxious: "😰",
+  excited: "🤩",
+  grateful: "🙏",
+  frustrated: "😤",
 };
 
-// Mock country data - in production, fetch from API
-const COUNTRIES_DATA = [
-  {
-    country: "United States",
-    flag: "🇺🇸",
-    checkIns: 8234,
-    trend: 12.5,
-    dominantEmotion: "joy",
-    emotionBreakdown: { joy: 38, calm: 25, stress: 18, anticipation: 12, sadness: 7 },
-    localTime: "3:24 PM",
-  },
-  {
-    country: "United Kingdom",
-    flag: "🇬🇧",
-    checkIns: 4521,
-    trend: 8.3,
-    dominantEmotion: "calm",
-    emotionBreakdown: { calm: 42, joy: 28, stress: 15, anticipation: 10, sadness: 5 },
-    localTime: "8:24 PM",
-  },
-  {
-    country: "Japan",
-    flag: "🇯🇵",
-    checkIns: 6183,
-    trend: -3.2,
-    dominantEmotion: "stress",
-    emotionBreakdown: { stress: 35, calm: 30, joy: 20, anticipation: 10, sadness: 5 },
-    localTime: "4:24 AM",
-  },
-  {
-    country: "Brazil",
-    flag: "🇧🇷",
-    checkIns: 3892,
-    trend: 15.7,
-    dominantEmotion: "joy",
-    emotionBreakdown: { joy: 45, calm: 22, anticipation: 18, stress: 10, sadness: 5 },
-    localTime: "4:24 PM",
-  },
-  {
-    country: "Germany",
-    flag: "🇩🇪",
-    checkIns: 3456,
-    trend: 6.1,
-    dominantEmotion: "calm",
-    emotionBreakdown: { calm: 40, joy: 30, stress: 15, anticipation: 10, sadness: 5 },
-    localTime: "9:24 PM",
-  },
-  {
-    country: "Australia",
-    flag: "🇦🇺",
-    checkIns: 2987,
-    trend: 10.2,
-    dominantEmotion: "joy",
-    emotionBreakdown: { joy: 42, calm: 28, anticipation: 15, stress: 10, sadness: 5 },
-    localTime: "6:24 AM",
-  },
-  {
-    country: "India",
-    flag: "🇮🇳",
-    checkIns: 5621,
-    trend: 18.9,
-    dominantEmotion: "anticipation",
-    emotionBreakdown: { anticipation: 38, joy: 25, calm: 20, stress: 12, sadness: 5 },
-    localTime: "12:54 AM",
-  },
-  {
-    country: "Canada",
-    flag: "🇨🇦",
-    checkIns: 2341,
-    trend: 7.4,
-    dominantEmotion: "calm",
-    emotionBreakdown: { calm: 44, joy: 28, stress: 12, anticipation: 10, sadness: 6 },
-    localTime: "3:24 PM",
-  },
-  {
-    country: "France",
-    flag: "🇫🇷",
-    checkIns: 2876,
-    trend: -2.1,
-    dominantEmotion: "calm",
-    emotionBreakdown: { calm: 36, joy: 30, stress: 18, anticipation: 10, sadness: 6 },
-    localTime: "9:24 PM",
-  },
-  {
-    country: "South Korea",
-    flag: "🇰🇷",
-    checkIns: 4123,
-    trend: 5.8,
-    dominantEmotion: "stress",
-    emotionBreakdown: { stress: 32, calm: 28, joy: 22, anticipation: 12, sadness: 6 },
-    localTime: "4:24 AM",
-  },
-  {
-    country: "Mexico",
-    flag: "🇲🇽",
-    checkIns: 2654,
-    trend: 13.2,
-    dominantEmotion: "joy",
-    emotionBreakdown: { joy: 46, anticipation: 22, calm: 18, stress: 10, sadness: 4 },
-    localTime: "2:24 PM",
-  },
-  {
-    country: "Spain",
-    flag: "🇪🇸",
-    checkIns: 2198,
-    trend: 9.5,
-    dominantEmotion: "joy",
-    emotionBreakdown: { joy: 44, calm: 26, anticipation: 15, stress: 10, sadness: 5 },
-    localTime: "9:24 PM",
-  },
-];
+interface CountryData {
+  country: string;
+  flag: string;
+  checkIns: number;
+  trend: number;
+  dominantEmotion: string;
+  emotionBreakdown: Record<string, number>;
+  localTime: string;
+  activityScore: number;
+}
 
 export function CountryGrid() {
+  const [countries, setCountries] = useState<CountryData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"checkIns" | "trend">("checkIns");
 
-  const sortedCountries = [...COUNTRIES_DATA].sort((a, b) => {
+  useEffect(() => {
+    fetchCountryData();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchCountryData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchCountryData = async () => {
+    try {
+      const response = await fetch('/api/countries/stats');
+      const data = await response.json();
+
+      if (data.countries && data.countries.length > 0) {
+        setCountries(data.countries);
+      }
+    } catch (error) {
+      console.error('Error fetching country data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sortedCountries = [...countries].sort((a, b) => {
     if (sortBy === "checkIns") return b.checkIns - a.checkIns;
     return b.trend - a.trend;
   });
+
+  if (loading) {
+    return (
+      <div className="w-full flex items-center justify-center py-20">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-400">Loading global mood data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (countries.length === 0) {
+    return (
+      <div className="w-full">
+        <div className="text-center py-20">
+          <div className="text-6xl mb-4">🌍</div>
+          <h3 className="text-2xl font-bold text-white mb-2">
+            Be the First to Share Your Vibe!
+          </h3>
+          <p className="text-gray-400 max-w-md mx-auto">
+            No check-ins yet from around the world. Start the global conversation by sharing how you feel today.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -150,7 +110,7 @@ export function CountryGrid() {
             Global Mood by Country
           </h2>
           <p className="text-gray-300">
-            Real-time emotional data from around the world 🌍
+            Real-time emotional data from {countries.length} {countries.length === 1 ? 'country' : 'countries'} 🌍
           </p>
         </div>
 
@@ -183,7 +143,8 @@ export function CountryGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {sortedCountries.map((data, index) => {
           const isHovered = hoveredCountry === data.country;
-          const dominantColor = EMOTION_COLORS[data.dominantEmotion as keyof typeof EMOTION_COLORS];
+          const dominantColor = EMOTION_COLORS[data.dominantEmotion] || EMOTION_COLORS.calm;
+          const dominantEmoji = EMOTION_EMOJIS[data.dominantEmotion] || EMOTION_EMOJIS.calm;
 
           return (
             <motion.div
@@ -228,15 +189,19 @@ export function CountryGrid() {
                     className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
                       data.trend > 0
                         ? "bg-green-500/20 text-green-400"
-                        : "bg-red-500/20 text-red-400"
+                        : data.trend < 0
+                        ? "bg-red-500/20 text-red-400"
+                        : "bg-gray-500/20 text-gray-400"
                     }`}
                   >
                     {data.trend > 0 ? (
                       <TrendingUp className="w-3 h-3" />
-                    ) : (
+                    ) : data.trend < 0 ? (
                       <TrendingDown className="w-3 h-3" />
+                    ) : (
+                      <span>~</span>
                     )}
-                    {Math.abs(data.trend)}%
+                    {data.trend !== 0 && `${Math.abs(data.trend)}%`}
                   </div>
                 </div>
 
@@ -246,20 +211,21 @@ export function CountryGrid() {
                   <span className="text-2xl font-bold text-white">
                     {data.checkIns.toLocaleString()}
                   </span>
-                  <span className="text-sm text-gray-400">check-ins</span>
+                  <span className="text-sm text-gray-400">check-in{data.checkIns !== 1 ? 's' : ''}</span>
                 </div>
 
                 {/* Dominant emotion */}
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">
-                      {EMOTION_EMOJIS[data.dominantEmotion as keyof typeof EMOTION_EMOJIS]}
-                    </span>
+                    <span className="text-2xl">{dominantEmoji}</span>
                     <span
                       className="text-sm font-bold capitalize"
                       style={{ color: dominantColor }}
                     >
-                      {data.dominantEmotion} ({data.emotionBreakdown[data.dominantEmotion as keyof typeof data.emotionBreakdown]}%)
+                      {data.dominantEmotion}
+                      {data.emotionBreakdown[data.dominantEmotion] &&
+                        ` (${data.emotionBreakdown[data.dominantEmotion]}%)`
+                      }
                     </span>
                   </div>
                   <div className="text-xs text-gray-400">Most common feeling</div>
@@ -278,6 +244,7 @@ export function CountryGrid() {
                     <div className="text-xs text-gray-400 mb-2">Emotion breakdown:</div>
                     {Object.entries(data.emotionBreakdown)
                       .sort(([, a], [, b]) => (b as number) - (a as number))
+                      .slice(0, 5) // Show top 5 emotions
                       .map(([emotion, percent]) => (
                         <div key={emotion} className="flex items-center gap-2">
                           <div className="w-16 text-xs text-gray-400 capitalize">
@@ -287,7 +254,7 @@ export function CountryGrid() {
                             <motion.div
                               className="h-full rounded-full"
                               style={{
-                                backgroundColor: EMOTION_COLORS[emotion as keyof typeof EMOTION_COLORS],
+                                backgroundColor: EMOTION_COLORS[emotion] || EMOTION_COLORS.calm,
                               }}
                               initial={{ width: 0 }}
                               animate={{ width: `${percent}%` }}
@@ -330,7 +297,7 @@ export function CountryGrid() {
         transition={{ delay: 0.5 }}
         className="mt-8 text-center text-gray-400 text-sm"
       >
-        Showing top {COUNTRIES_DATA.length} countries • Updated in real-time
+        Showing {countries.length} active {countries.length === 1 ? 'country' : 'countries'} • Updated in real-time • Refreshes every 30 seconds
       </motion.div>
     </div>
   );

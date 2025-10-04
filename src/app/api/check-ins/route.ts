@@ -24,20 +24,22 @@ export async function GET(request: NextRequest) {
   try {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const offset = (page - 1) * limit;
     const emotion = searchParams.get('emotion');
     const region = searchParams.get('region');
 
-    // Try cache first (only for default query)
-    if (!emotion && !region && offset === 0 && limit === 50) {
+    // Try cache first (only for default query - page 1)
+    if (!emotion && !region && page === 1) {
       const cached = await redis.get(CACHE_KEY);
       if (cached) {
         metrics.increment('api.check_ins.cache_hit');
+        const cachedItems = JSON.parse(cached);
         return NextResponse.json({
-          success: true,
-          data: JSON.parse(cached),
-          cached: true,
+          items: cachedItems,
+          nextCursor: cachedItems.length >= limit ? 2 : null,
+          totalCount: cachedItems.length,
           timestamp: new Date().toISOString()
         });
       }
@@ -93,20 +95,14 @@ export async function GET(request: NextRequest) {
     const total = await prisma.checkIn.count({ where });
 
     const response = {
-      success: true,
-      data: formattedCheckIns,
-      pagination: {
-        limit,
-        offset,
-        total,
-        hasMore: offset + limit < total,
-      },
-      cached: false,
+      items: formattedCheckIns,
+      nextCursor: offset + limit < total ? page + 1 : null,
+      totalCount: total,
       timestamp: new Date().toISOString()
     };
 
     // Cache default query result
-    if (!emotion && !region && offset === 0 && limit === 50) {
+    if (!emotion && !region && page === 1) {
       await redis.set(CACHE_KEY, JSON.stringify(formattedCheckIns), { ex: CACHE_TTL });
     }
 

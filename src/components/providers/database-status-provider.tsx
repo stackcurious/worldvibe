@@ -58,17 +58,7 @@ export function DatabaseStatusProvider({ children }: DatabaseStatusProviderProps
             lastChecked: Date.now()
           });
           
-          // Show a toast notification on first successful connection
-          if (data.connected && !notified) {
-            toast.success('Database connected successfully', {
-              icon: <CheckCircle className="h-4 w-4" />,
-              description: 'The application is now ready to use.',
-              duration: 4000
-            });
-            setNotified(true);
-          }
-          
-          // Show error notification if the connection fails after being successful
+          // Only show error notification if the connection fails after being successful
           if (!data.connected && notified) {
             toast.error('Database connection lost', {
               icon: <XCircle className="h-4 w-4" />,
@@ -76,6 +66,8 @@ export function DatabaseStatusProvider({ children }: DatabaseStatusProviderProps
               duration: 0 // Persistent until dismissed
             });
             setNotified(false);
+          } else if (data.connected && !notified) {
+            setNotified(true);
           }
         }
       } catch (error) {

@@ -10,15 +10,27 @@ import { GlobalInsights } from "@/components/dashboard/global-insights";
 import { RealtimeFeed } from "@/components/dashboard/realtime-feed";
 import { TrendAnalysis } from "@/components/dashboard/trend-analysis";
 import { RegionalHeatmap } from "@/components/dashboard/regional-heatmap";
+import { CheckInStats } from "@/components/admin/check-in-stats";
+import { SubscriberManager } from "@/components/admin/subscriber-manager";
+import { UserAnalytics } from "@/components/admin/user-analytics";
+import { ContentModeration } from "@/components/admin/content-moderation";
+import { DataExport } from "@/components/admin/data-export";
+import { SystemHealth } from "@/components/admin/system-health";
 
 const tabs = [
-  { id: "overview", label: "Overview" },
-  { id: "trends", label: "Trends" },
-  { id: "regions", label: "Regions" },
+  { id: "health", label: "🏥 System Health" },
+  { id: "overview", label: "📊 Overview" },
+  { id: "statistics", label: "📈 Statistics" },
+  { id: "subscribers", label: "📧 Subscribers" },
+  { id: "analytics", label: "👥 Analytics" },
+  { id: "moderation", label: "📝 Moderation" },
+  { id: "export", label: "📤 Export" },
+  { id: "trends", label: "📉 Trends" },
+  { id: "regions", label: "🗺️ Regions" },
 ];
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("health");
 
   return (
     <motion.div
@@ -52,6 +64,10 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
+            {activeTab === "health" && (
+              <SystemHealth />
+            )}
+
             {activeTab === "overview" && (
               <section className="space-y-6">
                 {/* Stats Overview */}
@@ -115,6 +131,71 @@ export default function DashboardPage() {
                 <h2 className="text-2xl font-semibold mb-2">Regional Heatmap</h2>
                 <p className="text-gray-400 mb-4">A geographic view of real-time emotional trends.</p>
                 <RegionalHeatmap />
+              </motion.div>
+            )}
+
+            {activeTab === "statistics" && (
+              <motion.div
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-2">Check-in Statistics</h2>
+                <p className="text-gray-400 mb-4">View detailed statistics about check-ins over time.</p>
+                <CheckInStats />
+              </motion.div>
+            )}
+
+            {activeTab === "subscribers" && (
+              <motion.div
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-2">Email Subscribers</h2>
+                <p className="text-gray-400 mb-4">Manage email reminder subscribers and export data.</p>
+                <SubscriberManager />
+              </motion.div>
+            )}
+
+            {activeTab === "analytics" && (
+              <motion.div
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-2">User Analytics</h2>
+                <p className="text-gray-400 mb-4">Insights into user behavior, devices, and retention.</p>
+                <UserAnalytics />
+              </motion.div>
+            )}
+
+            {activeTab === "moderation" && (
+              <motion.div
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-2">Content Moderation</h2>
+                <p className="text-gray-400 mb-4">Review and moderate check-ins with notes.</p>
+                <ContentModeration />
+              </motion.div>
+            )}
+
+            {activeTab === "export" && (
+              <motion.div
+                className="bg-white/5 backdrop-blur-md rounded-xl p-6 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-semibold mb-2">Data Export</h2>
+                <p className="text-gray-400 mb-4">Export check-ins and subscriber data in various formats.</p>
+                <DataExport />
               </motion.div>
             )}
           </motion.div>

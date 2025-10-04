@@ -207,10 +207,31 @@ export async function POST(request: NextRequest) {
       regionHash = await regionHasher.hashRegion('GLOBAL');
     }
 
+    // Pre-flight database health check
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch (dbError) {
+      logger.error('Database health check failed before check-in', {
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+        requestId
+      });
+
+      return NextResponse.json({
+        error: "Service temporarily unavailable",
+        message: "Database is currently unavailable. Please try again in a few moments.",
+        requestId
+      }, {
+        status: 503,
+        headers: {
+          'Retry-After': '30'
+        }
+      });
+    }
+
     // Create check-in record
     const timestamp = new Date(validatedBody.timestamp || new Date().toISOString());
     const checkInService = new CheckInService();
-    
+
     let checkInResult;
     try {
       checkInResult = await checkInService.createCheckIn({
