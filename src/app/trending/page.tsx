@@ -44,12 +44,125 @@ interface Vibe {
   deviceType: string;
 }
 
+// Mock vibes data
+const MOCK_VIBES: Vibe[] = [
+  {
+    id: 'mock-1',
+    emotion: 'joy',
+    intensity: 5,
+    reason: "Just got accepted into my dream university! Years of hard work paying off! 🎓",
+    region: "New York, US",
+    timestamp: new Date(Date.now() - 180000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-2',
+    emotion: 'calm',
+    intensity: 4,
+    reason: "Morning yoga by the lake. The sunrise was absolutely breathtaking.",
+    region: "Vancouver, CA",
+    timestamp: new Date(Date.now() - 360000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-3',
+    emotion: 'anticipation',
+    intensity: 5,
+    reason: "Wedding day tomorrow! Can't sleep, too excited to marry my best friend! 💍",
+    region: "Paris, FR",
+    timestamp: new Date(Date.now() - 540000).toISOString(),
+    deviceType: 'tablet',
+  },
+  {
+    id: 'mock-4',
+    emotion: 'joy',
+    intensity: 4,
+    reason: "My little one took their first steps today! Proudest parent moment ever ❤️",
+    region: "Sydney, AU",
+    timestamp: new Date(Date.now() - 720000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-5',
+    emotion: 'stress',
+    intensity: 3,
+    reason: "Presentation day. Deep breaths. I've prepared for this. I can do it!",
+    region: "London, UK",
+    timestamp: new Date(Date.now() - 900000).toISOString(),
+    deviceType: 'desktop',
+  },
+  {
+    id: 'mock-6',
+    emotion: 'calm',
+    intensity: 5,
+    reason: "Finished reading an incredible book. Sometimes you need to unplug and just read.",
+    region: "Tokyo, JP",
+    timestamp: new Date(Date.now() - 1080000).toISOString(),
+    deviceType: 'tablet',
+  },
+  {
+    id: 'mock-7',
+    emotion: 'joy',
+    intensity: 5,
+    reason: "Rescued a puppy from the shelter today. Meet Max! He's perfect! 🐕",
+    region: "Berlin, DE",
+    timestamp: new Date(Date.now() - 1260000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-8',
+    emotion: 'anticipation',
+    intensity: 4,
+    reason: "About to board my first international flight. Adventure awaits!",
+    region: "Mumbai, IN",
+    timestamp: new Date(Date.now() - 1440000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-9',
+    emotion: 'calm',
+    intensity: 4,
+    reason: "Rainy Sunday afternoon with tea and a cozy blanket. Pure bliss.",
+    region: "Seattle, US",
+    timestamp: new Date(Date.now() - 1620000).toISOString(),
+    deviceType: 'desktop',
+  },
+  {
+    id: 'mock-10',
+    emotion: 'joy',
+    intensity: 5,
+    reason: "Finally debt-free after 5 years! Financial freedom feels amazing!",
+    region: "Toronto, CA",
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+    deviceType: 'desktop',
+  },
+  {
+    id: 'mock-11',
+    emotion: 'stress',
+    intensity: 2,
+    reason: "Job interview jitters but staying positive. Everything happens for a reason.",
+    region: "Singapore, SG",
+    timestamp: new Date(Date.now() - 1980000).toISOString(),
+    deviceType: 'mobile',
+  },
+  {
+    id: 'mock-12',
+    emotion: 'anticipation',
+    intensity: 5,
+    reason: "Concert tickets secured! Going to see my favorite band live after 3 years! 🎸",
+    region: "Los Angeles, US",
+    timestamp: new Date(Date.now() - 2160000).toISOString(),
+    deviceType: 'desktop',
+  },
+];
+
 export default function TrendingPage() {
-  const [activeTab, setActiveTab] = useState<'insights' | 'wall'>('insights');
-  const [vibes, setVibes] = useState<Vibe[]>([]);
+  const [activeTab, setActiveTab] = useState<'insights' | 'wall'>('wall');
+  const [vibes, setVibes] = useState<Vibe[]>(MOCK_VIBES);
   const [loading, setLoading] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(20);
+  const [usingMockData, setUsingMockData] = useState(true);
 
   useEffect(() => {
     if (activeTab === 'wall') {
@@ -70,9 +183,13 @@ export default function TrendingPage() {
       if (!response.ok) throw new Error('Failed to fetch');
 
       const data = await response.json();
-      setVibes(data.vibes || []);
+      if (data.vibes && data.vibes.length > 0) {
+        setVibes(data.vibes);
+        setUsingMockData(false);
+      }
     } catch (err) {
       console.error('Error fetching vibes:', err);
+      // Keep using mock data on error
     } finally {
       setLoading(false);
     }
@@ -304,10 +421,21 @@ export default function TrendingPage() {
         {/* Stats */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 text-gray-300">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm">
-              {vibes.length} {selectedEmotion ? `${selectedEmotion} ` : ''}vibes shared • Updates every 30s
-            </span>
+            {usingMockData ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-sm">
+                  <span className="text-yellow-400">Preview mode</span> • Showing {vibes.length} sample vibes • Real data will appear automatically
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-sm">
+                  {vibes.length} {selectedEmotion ? `${selectedEmotion} ` : ''}vibes shared • Updates every 30s
+                </span>
+              </>
+            )}
           </div>
         </div>
 
