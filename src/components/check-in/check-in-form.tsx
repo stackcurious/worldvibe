@@ -3,7 +3,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Share2, MapPin, Globe, Info, Shield, Loader2, AlertTriangle } from "lucide-react";
+import { Share2, MapPin, Globe, Info, Shield, Loader2, AlertTriangle, Eye, X } from "lucide-react";
 import { EmotionSelector } from "./emotion-selector";
 import { IntensitySlider } from "./intensity-slider";
 import { CountrySelector } from "./country-selector";
@@ -69,6 +69,9 @@ export function CheckInForm() {
   // Device identification
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+
+  // Focus mode state
+  const [focusMode, setFocusMode] = useState(false);
 
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -356,7 +359,17 @@ export function CheckInForm() {
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (!emotion || !deviceId) return;
+    if (!emotion) return;
+
+    // Generate a temporary device ID if none exists
+    const currentDeviceId = deviceId || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const currentFingerprint = fingerprint || `fp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Store the generated device ID for future use
+    if (!deviceId && currentDeviceId.startsWith('temp-')) {
+      localStorage.setItem("worldvibe_device_id", currentDeviceId);
+      setDeviceId(currentDeviceId);
+    }
 
     setIsSubmitting(true);
     setErrorMessage(null); // Clear previous errors
@@ -381,6 +394,8 @@ export function CheckInForm() {
 
       console.log('📤 Submitting check-in:', payload);
       console.log('📍 Position state:', detectedPosition);
+      console.log('🔑 Device ID:', currentDeviceId);
+      console.log('🔑 Fingerprint:', currentFingerprint);
 
       // Add timeout to prevent hanging requests
       const controller = new AbortController();
@@ -390,8 +405,8 @@ export function CheckInForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Device-ID": deviceId,
-          "X-Fingerprint": fingerprint || "",
+          "X-Device-ID": currentDeviceId,
+          "X-Fingerprint": currentFingerprint,
         },
         body: JSON.stringify(payload),
         signal: controller.signal,
@@ -481,6 +496,7 @@ export function CheckInForm() {
       });
 
       setShowSuccess(true);
+      setFocusMode(false); // Exit focus mode on successful submission
       setTimeout(() => {
         setShowSuccess(false);
         setShowShareDialog(true);
@@ -544,13 +560,52 @@ export function CheckInForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-          {/* Progress Indicator */}
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <ProgressIndicator steps={steps} currentStep={currentStep} />
-          </div>
+    <>
+      {/* Focus Mode Backdrop */}
+      {focusMode && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
+          onClick={() => setFocusMode(false)}
+        />
+      )}
+
+      <div className={cn(
+        "min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-all duration-300",
+        focusMode && "relative z-50"
+      )}>
+        <div className="max-w-2xl mx-auto px-4">
+          <div className={cn(
+            "bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden transition-all duration-300",
+            focusMode && "scale-105 shadow-2xl ring-4 ring-blue-500/20"
+          )}>
+            {/* Progress Indicator with Focus Mode Toggle */}
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <ProgressIndicator steps={steps} currentStep={currentStep} />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFocusMode(!focusMode)}
+                className={cn(
+                  "flex items-center gap-2 text-xs",
+                  focusMode && "text-blue-500"
+                )}
+              >
+                {focusMode ? (
+                  <>
+                    <X className="h-4 w-4" />
+                    Exit Focus
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Focus Mode
+                  </>
+                )}
+              </Button>
+            </div>
 
           <div className="p-6 space-y-8">
             {/* Privacy Notice */}
@@ -573,6 +628,10 @@ export function CheckInForm() {
                   setEmotion(selectedEmotion);
                   setCurrentStep("intensity");
                   trackEvent("emotion_selected", { emotion: selectedEmotion });
+                  // Automatically enable focus mode when starting check-in
+                  if (!focusMode) {
+                    setFocusMode(true);
+                  }
                 }}
                 selectedEmotion={emotion}
               />
@@ -849,6 +908,7 @@ export function CheckInForm() {
         onSelect={handleCountrySelect}
         selectedCountry={manualCountry}
       />
-    </div>
+      </div>
+    </>
   );
 }
