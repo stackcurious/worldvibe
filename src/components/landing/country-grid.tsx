@@ -384,15 +384,7 @@ export function CountryGrid() {
         transition={{ delay: 0.5 }}
         className="mt-8 text-center text-gray-400 text-sm"
       >
-        {usingMockData ? (
-          <>
-            <span className="text-yellow-400">⚡ Preview mode</span> • Showing sample data • Real data will appear automatically when check-ins are submitted
-          </>
-        ) : (
-          <>
-            Showing {countries.length} active {countries.length === 1 ? 'country' : 'countries'} • Updated in real-time • Refreshes every 30 seconds
-          </>
-        )}
+        Showing {countries.length} active {countries.length === 1 ? 'country' : 'countries'} • Updated in real-time • Refreshes every 30 seconds
       </motion.div>
     </div>
   );

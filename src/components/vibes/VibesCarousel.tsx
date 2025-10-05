@@ -210,11 +210,6 @@ export function VibesCarousel() {
         <div className="flex items-center gap-3">
           <Sparkles className="w-6 h-6 text-yellow-400" />
           <h3 className="text-2xl font-bold text-white">Live Vibes from Around the World</h3>
-          {usingMockData && (
-            <span className="px-3 py-1 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30">
-              Preview Mode
-            </span>
-          )}
         </div>
         <Link
           href="/trending"

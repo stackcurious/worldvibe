@@ -232,7 +232,7 @@ export default function TrendingPage() {
 
           <h1 className="text-6xl font-black mb-4">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">
-              Trending Vibes
+              Trending Moods
             </span>
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -242,6 +242,19 @@ export default function TrendingPage() {
 
         {/* Tabs */}
         <div className="flex items-center justify-center gap-4 mb-12">
+          <button
+            onClick={() => setActiveTab('wall')}
+            className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
+              activeTab === 'wall'
+                ? 'bg-gradient-to-r from-yellow-400 to-pink-500 text-white shadow-xl scale-105'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Mood Wall
+            </div>
+          </button>
           <button
             onClick={() => setActiveTab('insights')}
             className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
@@ -253,19 +266,6 @@ export default function TrendingPage() {
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
               Insights & Analytics
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('wall')}
-            className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-              activeTab === 'wall'
-                ? 'bg-gradient-to-r from-yellow-400 to-pink-500 text-white shadow-xl scale-105'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Vibes Wall
             </div>
           </button>
         </div>
@@ -421,21 +421,10 @@ export default function TrendingPage() {
         {/* Stats */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 text-gray-300">
-            {usingMockData ? (
-              <>
-                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                <span className="text-sm">
-                  <span className="text-yellow-400">Preview mode</span> • Showing {vibes.length} sample vibes • Real data will appear automatically
-                </span>
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-sm">
-                  {vibes.length} {selectedEmotion ? `${selectedEmotion} ` : ''}vibes shared • Updates every 30s
-                </span>
-              </>
-            )}
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm">
+              {vibes.length} {selectedEmotion ? `${selectedEmotion} ` : ''}moods shared • Updates in real-time
+            </span>
           </div>
         </div>
 
