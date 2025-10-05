@@ -51,12 +51,33 @@ export function decodeRegionHash(regionHash: string): string {
 
   // For coordinate-based hashes, extract rough location
   // These are hashed lat/lng, so we can only give general regions
-  if (cleanHash.length >= 6) {
+  if (cleanHash.length >= 2) {
     const prefix = cleanHash.substring(0, 2).toLowerCase();
 
     // Very rough geographic mapping based on hash prefixes
     // This is just for display purposes
     const prefixMap: { [key: string]: string } = {
+      // First character patterns - broader regions
+      '0': 'North America',
+      '1': 'Europe',
+      '2': 'Asia',
+      '3': 'Europe',
+      '4': 'Asia',
+      '5': 'South America',
+      '6': 'Africa',
+      '7': 'Oceania',
+      '8': 'Middle East',
+      '9': 'Central America',
+      'a': 'Northern Europe',
+      'b': 'Eastern Europe',
+      'c': 'Southeast Asia',
+      'd': 'East Asia',
+      'e': 'Western Europe',
+      'f': 'Southern Europe',
+      // More specific two-character combinations
+      '03': 'California, USA',
+      '0e': 'New York, USA',
+      '26': 'California, USA',
       '2f': 'North America',
       '3a': 'Europe',
       '4b': 'Asia',
@@ -67,13 +88,21 @@ export function decodeRegionHash(regionHash: string): string {
       '9a': 'Central America',
       'ab': 'Northern Europe',
       'bc': 'Eastern Europe',
+      'c1': 'West Coast, USA',
       'cd': 'Southeast Asia',
       'de': 'East Asia',
       'ef': 'Western Europe',
       'f0': 'Southern Europe',
     };
 
-    const region = prefixMap[prefix];
+    // Try two-character match first
+    let region = prefixMap[prefix];
+    if (region) {
+      return region;
+    }
+
+    // Fall back to single character match
+    region = prefixMap[prefix[0]];
     if (region) {
       return region;
     }

@@ -87,21 +87,24 @@ export async function GET(request: NextRequest) {
     });
 
     // Format response with anonymized data
-    const formattedCheckIns = checkIns.map((checkIn: any) => ({
-      id: checkIn.id,
-      emotion: checkIn.emotion.toLowerCase(),
-      intensity: checkIn.intensity,
-      note: checkIn.note || null,
-      region: getRegionDisplayName(checkIn.regionHash), // Decode region hash to human-readable
-      regionHash: checkIn.regionHash, // Keep original hash for filtering
-      timestamp: checkIn.createdAt.toISOString(),
-      // Include coordinates for map visualization
-      coordinates: checkIn.latitude && checkIn.longitude ? {
-        lat: checkIn.latitude,
-        lng: checkIn.longitude,
-      } : null,
-      deviceType: checkIn.deviceType.toLowerCase(),
-    }));
+    const formattedCheckIns = checkIns.map((checkIn: any) => {
+      const decodedRegion = getRegionDisplayName(checkIn.regionHash);
+      return {
+        id: checkIn.id,
+        emotion: checkIn.emotion.toLowerCase(),
+        intensity: checkIn.intensity,
+        note: checkIn.note || null,
+        region: decodedRegion, // Decode region hash to human-readable
+        regionHash: checkIn.regionHash, // Keep original hash for filtering
+        timestamp: checkIn.createdAt.toISOString(),
+        // Include coordinates for map visualization
+        coordinates: checkIn.latitude && checkIn.longitude ? {
+          lat: checkIn.latitude,
+          lng: checkIn.longitude,
+        } : null,
+        deviceType: checkIn.deviceType.toLowerCase(),
+      };
+    });
 
     // Get total count for pagination
     const total = await prisma.checkIn.count({ where });
