@@ -1,6 +1,7 @@
 /**
  * Content Moderation System
  * Filters inappropriate content, profanity, and harmful language from check-in notes
+ * Updated: Fixed regex crash with special characters
  */
 
 import { logger } from '@/lib/logger';
