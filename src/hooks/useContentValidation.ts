@@ -108,7 +108,9 @@ export function useContentValidation(text: string, maxLength = 500) {
     // Check for common profanity (basic check)
     const lowerText = trimmed.toLowerCase();
     const foundProfanity = COMMON_PROFANITY.some(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      // Escape special regex characters in the word
+      const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedWord}\\b`, 'i');
       return regex.test(lowerText);
     });
 
