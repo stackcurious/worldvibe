@@ -11,6 +11,7 @@ const footerLinks = [
   { href: "/terms", label: "Terms" },
   { href: "https://twitter.com/worldvibe", label: "Twitter", external: true },
   { href: "https://github.com/worldvibe", label: "GitHub", external: true },
+  { href: "https://buymeacoffee.com/vibemaster", label: "☕ Support", external: true },
 ];
 
 export const Footer = memo(function Footer() {

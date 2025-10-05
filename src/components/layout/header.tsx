@@ -15,6 +15,10 @@ const navItems = [
   { href: '/about', label: 'About' }
 ];
 
+const supportItems = [
+  { href: 'https://buymeacoffee.com/vibemaster', label: '☕', external: true }
+];
+
 export const Header = memo(function Header() {
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
@@ -81,6 +85,20 @@ export const Header = memo(function Header() {
                 </Link>
               );
             })}
+            
+            {/* Support Items */}
+            {supportItems.map(({ href, label, external }) => (
+              <a
+                key={href}
+                href={href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+                className="text-sm font-medium text-gray-200 hover:text-yellow-400 transition-colors"
+                title="Support WorldVibe"
+              >
+                {label}
+              </a>
+            ))}
           </nav>
 
           {/* CTA Button */}

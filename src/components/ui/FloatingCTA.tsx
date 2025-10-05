@@ -10,7 +10,17 @@ export default function FloatingCTA() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > 200);
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Show after scrolling 200px down
+      const shouldShow = scrollY > 200;
+      
+      // Hide when near bottom (to avoid footer overlap)
+      const isNearBottom = scrollY + windowHeight >= documentHeight - 200;
+      
+      setIsVisible(shouldShow && !isNearBottom);
     };
 
     window.addEventListener("scroll", handleScroll);

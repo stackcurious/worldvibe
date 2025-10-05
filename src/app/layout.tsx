@@ -16,6 +16,7 @@ import { ToastProvider } from "@/components/ui/use-toast";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { StructuredData } from "@/components/seo/structured-data";
 import { SupportButton } from "@/components/shared/support-button";
+import { FloatingCoffeeButton } from "@/components/shared/floating-coffee-button";
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
@@ -116,8 +117,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <Footer />
               </div>
 
-              {/* Support/Donation Button */}
+              {/* Support/Donation Buttons */}
               <SupportButton />
+              <FloatingCoffeeButton />
 
               {/* Keep the existing Sonner Toaster for backward compatibility */}
               <Toaster

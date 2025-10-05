@@ -1,21 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, X, Coffee, DollarSign, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export function SupportButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Show after scrolling 100px down
+      const shouldShow = scrollY > 100;
+      
+      // Hide when near bottom (to avoid footer overlap)
+      const isNearBottom = scrollY + windowHeight >= documentHeight - 200;
+      
+      setIsVisible(shouldShow && !isNearBottom);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
       {/* Floating Support Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 z-40 group"
+        className="fixed bottom-24 left-6 z-40 group"
         initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        animate={{ scale: isVisible ? 1 : 0, opacity: isVisible ? 1 : 0 }}
         transition={{ delay: 2, type: 'spring', stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -118,7 +138,7 @@ export function SupportButton() {
                 <div className="space-y-3">
                   {/* Buy Me a Coffee */}
                   <a
-                    href="https://www.buymeacoffee.com/worldvibe"
+                    href="https://buymeacoffee.com/vibemaster"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full"
