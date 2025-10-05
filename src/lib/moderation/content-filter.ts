@@ -139,15 +139,37 @@ export function moderateContent(text: string): ModerationResult {
   const profanityFound: string[] = [];
 
   for (const word of PROFANITY_LIST) {
-    // Create regex that matches whole words or words with common separators
-    const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b|${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split('').join('[\\s\\-_]*')}`, 'gi');
+    try {
+      // Properly escape special regex characters
+      const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    if (regex.test(lowerText)) {
-      profanityFound.push(word);
+      // Create regex that matches whole words or words with common separators
+      // Only apply the spaced pattern to words without special chars
+      let regexPattern;
+      if (word.includes('*') || word.includes('?')) {
+        // For words with wildcards, just match as-is (already escaped)
+        regexPattern = `\\b${escapedWord}\\b`;
+      } else {
+        // For normal words, also match with spaces/dashes between letters
+        const spacedPattern = escapedWord.split('').join('[\\s\\-_]*');
+        regexPattern = `\\b${escapedWord}\\b|${spacedPattern}`;
+      }
 
-      // Replace with asterisks
-      sanitized = sanitized.replace(regex, (match) => {
-        return '*'.repeat(match.length);
+      const regex = new RegExp(regexPattern, 'gi');
+
+      if (regex.test(lowerText)) {
+        profanityFound.push(word);
+
+        // Replace with asterisks
+        sanitized = sanitized.replace(regex, (match) => {
+          return '*'.repeat(match.length);
+        });
+      }
+    } catch (error) {
+      // Log regex error but continue processing
+      logger.warn('Failed to create regex for profanity word', {
+        word,
+        error: String(error)
       });
     }
   }

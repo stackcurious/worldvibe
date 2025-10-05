@@ -50,7 +50,9 @@ class RedisRestService {
       }
 
       const data = await response.json();
-      return data.result ?? data;
+      // If the result is explicitly null or undefined, return null
+      // Otherwise return the result or the data itself for backward compatibility
+      return data.result !== undefined ? data.result : data;
     } catch (error) {
       logger.error('Redis REST API request failed:', error);
       metrics.increment('redis.rest.errors');
