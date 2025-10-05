@@ -310,6 +310,36 @@ export function CheckInForm() {
     );
   }, []);
 
+  // Check for rate limiting on mount
+  useEffect(() => {
+    const checkRateLimit = () => {
+      const rateLimitData = localStorage.getItem('worldvibe_rate_limit');
+      if (rateLimitData) {
+        try {
+          const { nextAllowedAt, deviceId: limitedDevice } = JSON.parse(rateLimitData);
+          const nextAllowed = new Date(nextAllowedAt);
+
+          // Check if still rate limited
+          if (new Date() < nextAllowed) {
+            const hoursLeft = Math.ceil((nextAllowed.getTime() - Date.now()) / (1000 * 60 * 60));
+            setErrorMessage(`You've already checked in today. Next check-in available in ${hoursLeft} hours.`);
+
+            // Update button state to show rate limit
+            setIsSubmitting(false);
+          } else {
+            // Rate limit expired, clean up
+            localStorage.removeItem('worldvibe_rate_limit');
+          }
+        } catch (error) {
+          console.error('Failed to parse rate limit data:', error);
+          localStorage.removeItem('worldvibe_rate_limit');
+        }
+      }
+    };
+
+    checkRateLimit();
+  }, []);
+
   // Initialize
   useEffect(() => {
     const init = async () => {
@@ -329,12 +359,14 @@ export function CheckInForm() {
     if (!emotion || !deviceId) return;
 
     setIsSubmitting(true);
+    setErrorMessage(null); // Clear previous errors
+
     try {
       // Ensure we always have a region, even if detection failed
       const regionCode = regionInfo?.code || currentRegion || 'GLOBAL';
-      
+
       const payload = {
-        emotion,
+        emotion: emotion?.toLowerCase(), // Convert to lowercase for API compatibility
         intensity,
         note,
         region: regionCode,
@@ -350,6 +382,10 @@ export function CheckInForm() {
       console.log('📤 Submitting check-in:', payload);
       console.log('📍 Position state:', detectedPosition);
 
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch("/api/check-in", {
         method: "POST",
         headers: {
@@ -358,12 +394,69 @@ export function CheckInForm() {
           "X-Fingerprint": fingerprint || "",
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
+      // Handle specific error codes
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Check-in failed");
+        let errorMessage = "Failed to save check-in";
+        let toastTitle = "Error";
+        let toastDescription = "Failed to save your check-in. Please try again.";
+
+        try {
+          const errorData = await response.json();
+
+          if (response.status === 429) {
+            // Rate limiting error
+            const nextAllowed = errorData.nextAllowedAt ? new Date(errorData.nextAllowedAt) : null;
+            const hoursLeft = nextAllowed ? Math.ceil((nextAllowed.getTime() - Date.now()) / (1000 * 60 * 60)) : 24;
+
+            errorMessage = `You've already checked in today. Next check-in available in ${hoursLeft} hours.`;
+            toastTitle = "Already Checked In";
+            toastDescription = errorMessage;
+
+            // Store rate limit info in localStorage
+            if (nextAllowed) {
+              localStorage.setItem('worldvibe_rate_limit', JSON.stringify({
+                nextAllowedAt: nextAllowed.toISOString(),
+                deviceId: deviceId,
+              }));
+            }
+          } else if (response.status === 503) {
+            // Service unavailable
+            errorMessage = "Service temporarily unavailable. Please try again in a moment.";
+            toastTitle = "Service Unavailable";
+            toastDescription = "Our servers are experiencing issues. Please try again shortly.";
+          } else if (response.status === 400) {
+            // Validation error
+            errorMessage = errorData.message || "Invalid check-in data";
+            if (errorData.details) {
+              errorMessage = errorData.details;
+            }
+            toastTitle = "Invalid Data";
+            toastDescription = errorMessage;
+          } else {
+            // Other errors
+            errorMessage = errorData.message || errorMessage;
+          }
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+        }
+
+        setErrorMessage(errorMessage);
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          variant: response.status === 429 ? "default" : "destructive",
+        });
+
+        throw new Error(errorMessage);
       }
+
+      // Success! Clear rate limit if it exists
+      localStorage.removeItem('worldvibe_rate_limit');
 
       // Save region preference
       if (regionInfo) {
@@ -377,6 +470,9 @@ export function CheckInForm() {
         );
       }
 
+      // Save successful check-in timestamp
+      localStorage.setItem('worldvibe_last_checkin', new Date().toISOString());
+
       trackEvent("check_in_complete", {
         emotion,
         intensity,
@@ -389,14 +485,34 @@ export function CheckInForm() {
         setShowSuccess(false);
         setShowShareDialog(true);
       }, 2000);
+
     } catch (error) {
       console.error("Check-in error:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save check-in");
-      toast({
-        title: "Error",
-        description: "Failed to save your check-in. Please try again.",
-        variant: "destructive",
-      });
+
+      // Handle network/timeout errors
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          const timeoutMessage = "Request timed out. Please check your connection and try again.";
+          setErrorMessage(timeoutMessage);
+          toast({
+            title: "Connection Timeout",
+            description: timeoutMessage,
+            variant: "destructive",
+          });
+        } else if (!navigator.onLine) {
+          const offlineMessage = "You appear to be offline. Please check your internet connection.";
+          setErrorMessage(offlineMessage);
+          toast({
+            title: "No Internet Connection",
+            description: offlineMessage,
+            variant: "destructive",
+          });
+        }
+        // Don't override specific error messages already set
+        else if (!errorMessage || errorMessage === "Failed to save check-in") {
+          setErrorMessage(error.message);
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -524,17 +640,16 @@ export function CheckInForm() {
                     <span className="text-gray-600 dark:text-gray-300 flex-1">
                       {isRegionDetecting ? "Detecting your region..." : regionInfo ? regionInfo.name : "Select your region"}
                     </span>
-                    {regionInfo?.source === "manual_pending" && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowCountrySelector(true)}
-                        className="text-xs"
-                      >
-                        Choose Country
-                      </Button>
-                    )}
+                    {/* Always show manual selection button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCountrySelector(true)}
+                      className="text-xs"
+                    >
+                      {regionInfo && regionInfo.source !== "manual_pending" ? "Change" : "Choose Country"}
+                    </Button>
                   </div>
 
                   {!detectedPosition && regionInfo?.source !== "geojson" && (

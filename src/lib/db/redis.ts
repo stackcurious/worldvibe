@@ -8,6 +8,7 @@ import { metrics } from '@/lib/metrics';
 import { logger } from '@/lib/logger';
 import { CircuitBreaker } from '@/lib/circuit-breaker';
 import { sqliteRedis } from './sqlite-redis';
+import { redisRest } from './redis-rest';
 
 // Check if we're using SQLite (from environment variable)
 const usingSQLite = process.env.DATABASE_URL?.includes('sqlite') || 
@@ -424,8 +425,31 @@ class EnterpriseRedisService {
   }
 }
 
-// Create singleton instance
-export const redis = new EnterpriseRedisService();
+// Create singleton instance with fallback to REST API
+let redisInstance: any;
+
+try {
+  // Try to create ioredis instance
+  redisInstance = new EnterpriseRedisService();
+
+  // Check if connection is working (give it a moment to connect)
+  setTimeout(async () => {
+    try {
+      await redisInstance.ping();
+    } catch (error) {
+      logger.warn('ioredis connection failed, switching to REST API');
+      redisInstance = redisRest;
+    }
+  }, 2000);
+} catch (error) {
+  logger.warn('Failed to initialize ioredis, using REST API fallback');
+  redisInstance = redisRest;
+}
+
+// Export with REST API fallback
+export const redis = process.env.USE_REDIS_REST === 'true' || process.env.REDIS_URL?.includes('probable-mustang')
+  ? redisRest
+  : redisInstance;
 
 // Also export as redisService for backward compatibility
 export const redisService = redis;

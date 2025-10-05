@@ -1,7 +1,7 @@
 // src/app/api/check-ins/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
-import { redis } from "@/lib/redis"; // Using REST API client
+import { redis } from "@/lib/db/redis"; // Use enterprise Redis with SQLite fallback
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
 

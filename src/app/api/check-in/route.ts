@@ -146,33 +146,37 @@ export async function POST(request: NextRequest) {
       "X-Device-ID": request.headers.get("X-Device-ID"),
       "X-Fingerprint": request.headers.get("X-Fingerprint"),
     };
-    
+
     let deviceInfo;
+    let deviceId: string;
+
     try {
-      // Try to identify the device with provided headers, or generate new identifier
+      // If device ID is provided in headers, use it directly for rate limiting
       if (deviceHeaders["X-Device-ID"]) {
-        // Validate provided ID against our records
-        deviceInfo = await getDeviceIdentifier({
-          ...clientData,
-          deviceId: deviceHeaders["X-Device-ID"],
-          fingerprint: deviceHeaders["X-Fingerprint"] || undefined,
-        });
+        deviceId = deviceHeaders["X-Device-ID"];
+        // Still create deviceInfo for consistency
+        deviceInfo = {
+          deviceId: deviceId,
+          fingerprint: deviceHeaders["X-Fingerprint"] || randomUUID(),
+          isNew: false
+        };
       } else {
-        // Generate new device ID
+        // Generate new device ID if not provided
         deviceInfo = await getDeviceIdentifier(clientData);
+        deviceId = deviceInfo.deviceId;
       }
     } catch (error) {
       logger.error('Device identification error', { error: String(error) });
       // Use a temporary device ID if identification fails
+      deviceId = `temp-${randomUUID()}`;
       deviceInfo = {
-        deviceId: `temp-${randomUUID()}`,
+        deviceId: deviceId,
         fingerprint: randomUUID(),
         isNew: true
       };
     }
 
     // Check rate limit (one check-in per day for normal usage)
-    const deviceId = deviceInfo.deviceId;
     const isRateLimited = await checkRateLimit(deviceId);
     
     if (isRateLimited) {
@@ -320,15 +324,39 @@ async function checkRateLimit(deviceId: string): Promise<boolean> {
         return true;
       }
     }
-    
-    // Check Redis
+
+    // Try Redis first
     const key = `${RATE_LIMIT_KEY_PREFIX}${deviceId}`;
-    
-    // Use circuit breaker to prevent Redis failures from blocking check-ins
-    return await redisBreaker.execute(async () => {
-      const result = await redis.get(key);
-      return !!result;
+
+    try {
+      // Use circuit breaker to prevent Redis failures from blocking check-ins
+      const redisResult = await redisBreaker.execute(async () => {
+        const result = await redis.get(key);
+        return !!result;
+      });
+
+      if (redisResult) {
+        return true;
+      }
+    } catch (redisError) {
+      logger.warn('Redis rate limit check failed, falling back to database', { error: String(redisError) });
+    }
+
+    // Fallback to database check if Redis fails
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+    const recentCheckIn = await prisma.checkIn.findFirst({
+      where: {
+        deviceId,
+        createdAt: {
+          gte: twentyFourHoursAgo,
+        },
+      },
+      select: { id: true, createdAt: true },
     });
+
+    return !!recentCheckIn;
   } catch (error) {
     // Log but don't block check-in if rate limiting fails
     logger.warn('Rate limiting check failed', { error: String(error) });

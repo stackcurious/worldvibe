@@ -61,14 +61,25 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  
+
   return function(...args: Parameters<T>) {
     if (timeout) {
       clearTimeout(timeout);
     }
-    
+
     timeout = setTimeout(() => {
       fn(...args);
     }, wait);
   };
+}
+
+/**
+ * Sanitizes text by removing HTML brackets and trimming whitespace
+ * Used for user-submitted content like check-in notes
+ */
+export function sanitizeText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  return text
+    .replace(/[<>]/g, '') // Remove HTML brackets to prevent XSS
+    .trim();
 }

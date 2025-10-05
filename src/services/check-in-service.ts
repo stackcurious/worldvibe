@@ -149,13 +149,31 @@ export class CheckInService {
         processedAt: null,
       };
       
-      // Store check-in data in multiple systems in parallel for resilience
-      await Promise.all([
-        this.storeInPrimaryDatabase(checkIn),
-        this.storeInTimeseriesDatabase(checkIn),
-        this.updateStreakAndHistory(params.deviceId, normalizedEmotion),
-        this.publishToStreamingPlatforms(checkIn),
+      // Store check-in data in multiple systems
+      // Use Promise.allSettled to prevent non-critical failures from blocking
+      const [dbResult, ...otherResults] = await Promise.allSettled([
+        this.storeInPrimaryDatabase(checkIn), // Critical - must succeed
+        this.storeInTimeseriesDatabase(checkIn), // Non-critical
+        this.updateStreakAndHistory(params.deviceId, normalizedEmotion), // Non-critical
+        this.publishToStreamingPlatforms(checkIn), // Non-critical
       ]);
+
+      // Check if primary database storage failed (critical)
+      if (dbResult.status === 'rejected') {
+        throw dbResult.reason;
+      }
+
+      // Log non-critical failures without blocking
+      otherResults.forEach((result, idx) => {
+        if (result.status === 'rejected') {
+          const operations = ['TimescaleDB', 'Streak Update', 'Streaming'];
+          logger.warn(`Non-critical operation failed: ${operations[idx]}`, {
+            operation: operations[idx],
+            error: String(result.reason),
+            checkInId: id,
+          });
+        }
+      });
       
       // Update analytics data (non-blocking)
       this.analyticsService.processCheckIn({
