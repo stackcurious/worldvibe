@@ -7,19 +7,50 @@ export function DataStream() {
   const updateData = useGlobalStore(state => state.updateData);
 
   const connectWebSocket = useCallback(() => {
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_WS_URL!);
+    // Disable WebSocket in production until we have a real WebSocket server
+    if (process.env.NODE_ENV === 'production') {
+      return () => {}; // Return empty cleanup function
+    }
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      updateData(data);
-    };
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setTimeout(connectWebSocket, 5000); // Retry after 5s
-    };
+    // Validate WebSocket URL before attempting connection
+    if (!wsUrl || wsUrl === 'https://your-domain.com' || wsUrl.includes('http://')) {
+      console.log('WebSocket URL not properly configured, skipping connection');
+      return () => {}; // Return empty cleanup function
+    }
 
-    return () => ws.close();
+    // Only attempt connection if URL is valid WebSocket URL
+    if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+      console.log('Invalid WebSocket URL protocol');
+      return () => {}; // Return empty cleanup function
+    }
+
+    try {
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          updateData(data);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.log('WebSocket error:', error);
+        // Only retry in development
+        if (process.env.NODE_ENV !== 'production') {
+          setTimeout(connectWebSocket, 5000);
+        }
+      };
+
+      return () => ws.close();
+    } catch (error) {
+      console.log('Failed to create WebSocket connection:', error);
+      return () => {}; // Return empty cleanup function
+    }
   }, [updateData]);
 
   useEffect(() => {

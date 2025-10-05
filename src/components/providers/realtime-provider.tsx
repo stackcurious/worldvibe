@@ -17,41 +17,62 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
  const updateData = useGlobalStore(state => state.updateData);
 
  useEffect(() => {
-   const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
-   if (!wsUrl) {
-     console.error('WebSocket URL not configured');
+   // Disable WebSocket in production until we have a real WebSocket server
+   if (process.env.NODE_ENV === 'production') {
+     console.log('WebSocket disabled in production');
      return;
    }
 
-   const ws = new WebSocket(wsUrl);
+   const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+   if (!wsUrl || wsUrl === 'https://your-domain.com' || wsUrl.includes('http://')) {
+     console.log('WebSocket URL not properly configured, skipping connection');
+     return;
+   }
 
-   ws.onopen = () => {
-     setIsConnected(true);
-     console.log('WebSocket connected');
-   };
+   // Only attempt connection if URL is valid WebSocket URL (ws:// or wss://)
+   if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+     console.log('Invalid WebSocket URL protocol, must start with ws:// or wss://');
+     return;
+   }
 
-   ws.onclose = () => {
-     setIsConnected(false);
-     // Attempt to reconnect after 5 seconds
-     setTimeout(() => {
-       console.log('Attempting to reconnect...');
-       // You might want to implement a more sophisticated reconnection strategy
-     }, 5000);
-   };
+   try {
+     const ws = new WebSocket(wsUrl);
 
-   ws.onmessage = (event) => {
-     try {
-       const data = JSON.parse(event.data);
-       updateData(data);
-       setLastUpdate(new Date());
-     } catch (error) {
-       console.error('Error processing WebSocket message:', error);
-     }
-   };
+     ws.onopen = () => {
+       setIsConnected(true);
+       console.log('WebSocket connected');
+     };
 
-   return () => {
-     ws.close();
-   };
+     ws.onclose = () => {
+       setIsConnected(false);
+       // Don't attempt reconnect in production
+       if (process.env.NODE_ENV !== 'production') {
+         setTimeout(() => {
+           console.log('Attempting to reconnect...');
+         }, 5000);
+       }
+     };
+
+     ws.onerror = (error) => {
+       console.log('WebSocket error:', error);
+     };
+
+     ws.onmessage = (event) => {
+       try {
+         const data = JSON.parse(event.data);
+         updateData(data);
+         setLastUpdate(new Date());
+       } catch (error) {
+         console.error('Error processing WebSocket message:', error);
+       }
+     };
+
+     return () => {
+       ws.close();
+     };
+   } catch (error) {
+     console.log('Failed to create WebSocket connection:', error);
+   }
  }, [updateData]);
 
  return (
