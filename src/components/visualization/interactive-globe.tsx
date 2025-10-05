@@ -83,11 +83,22 @@ export function InteractiveGlobe({
     });
   }, [checkIns]);
 
-  // Auto-rotation
+  // Auto-rotation and initial position
   useEffect(() => {
-    if (autoRotate && globeEl.current) {
-      globeEl.current.controls().autoRotate = true;
-      globeEl.current.controls().autoRotateSpeed = 0.5;
+    if (globeEl.current) {
+      // Set initial camera position (centered on Atlantic for global view)
+      globeEl.current.pointOfView({ lat: 20, lng: -30, altitude: 2.5 });
+
+      // Configure auto-rotation
+      globeEl.current.controls().autoRotate = autoRotate;
+      globeEl.current.controls().autoRotateSpeed = 0.3; // Slower, more elegant rotation
+      globeEl.current.controls().enableZoom = true;
+      globeEl.current.controls().zoomSpeed = 0.8;
+
+      // Enable smooth damping for better UX
+      globeEl.current.controls().enableDamping = true;
+      globeEl.current.controls().dampingFactor = 0.1;
+      globeEl.current.controls().rotateSpeed = 0.4;
     }
   }, [autoRotate]);
 
@@ -110,44 +121,72 @@ export function InteractiveGlobe({
   const htmlElementFn = (d: any) => {
     const el = document.createElement('div');
     el.style.cssText = `
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      background: ${d.color}20;
+      background: linear-gradient(135deg, ${d.color}40, ${d.color}20);
       border: 3px solid ${d.color};
-      box-shadow: 0 0 20px ${d.color}80;
+      box-shadow: 0 0 25px ${d.color}80, 0 4px 15px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.3s ease;
       animation: pulse 2s infinite;
+      backdrop-filter: blur(10px);
     `;
 
     // Add avatar inside
     const avatarContainer = document.createElement('div');
     avatarContainer.style.cssText = `
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       overflow: hidden;
-      background: white;
-    `;
-
-    // Render mini avatar (simplified for DOM)
-    const avatar = document.createElement('div');
-    avatar.textContent = EMOTION_EMOJIS[d.emotion.toLowerCase()] || '😊';
-    avatar.style.cssText = `
-      font-size: 28px;
+      background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
-      height: 100%;
+      position: relative;
     `;
 
-    avatarContainer.appendChild(avatar);
+    // Create avatar with emoji overlay for emotion
+    const avatarContent = document.createElement('div');
+    avatarContent.style.cssText = `
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    // Main emoji display
+    const mainEmoji = document.createElement('div');
+    mainEmoji.textContent = EMOTION_EMOJIS[d.emotion.toLowerCase()] || '😊';
+    mainEmoji.style.cssText = `
+      font-size: 32px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    `;
+
+    // Small emotion indicator
+    const emotionBadge = document.createElement('div');
+    emotionBadge.style.cssText = `
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: ${d.color};
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    `;
+
+    avatarContent.appendChild(mainEmoji);
+    avatarContainer.appendChild(avatarContent);
     el.appendChild(avatarContainer);
+    el.appendChild(emotionBadge);
 
     // Hover effect
     el.addEventListener('mouseenter', () => {

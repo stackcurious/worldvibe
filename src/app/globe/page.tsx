@@ -11,6 +11,7 @@ import { Globe as GlobeIcon, Pause, Play, Filter } from 'lucide-react';
 export default function GlobePage() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [selectedCheckIn, setSelectedCheckIn] = useState<GlobeCheckIn | null>(null);
 
   // Fetch check-ins for the globe
   const { data: checkInsData, isLoading } = useQuery({
@@ -43,8 +44,9 @@ export default function GlobePage() {
 
   // Handle point click
   const handlePointClick = useCallback((point: GlobeCheckIn) => {
-    console.log('Clicked point:', point);
-    // Could open a modal with details
+    setSelectedCheckIn(point);
+    // Pause rotation when viewing details
+    setAutoRotate(false);
   }, []);
 
   return (

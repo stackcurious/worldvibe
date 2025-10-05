@@ -7,6 +7,7 @@ import { TrendingKeywords } from '@/components/trending/TrendingKeywords';
 import { EmotionWordCloud } from '@/components/trending/EmotionWordCloud';
 import { RecentVibes } from '@/components/vibes/RecentVibes';
 import { EmotionReasons } from '@/components/vibes/EmotionReasons';
+import { GlobalMoodByCountry } from '@/components/countries/GlobalMoodByCountry';
 import Link from 'next/link';
 
 const EMOTION_COLORS = {
@@ -273,6 +274,15 @@ export default function TrendingPage() {
         {/* Tab Content */}
         {activeTab === 'insights' ? (
           <>
+        {/* Global Mood by Country Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16"
+        >
+          <GlobalMoodByCountry />
+        </motion.div>
+
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
           {/* Global Trending Keywords */}
@@ -452,7 +462,7 @@ export default function TrendingPage() {
         ) : (
           <>
             {/* Masonry Grid */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6">
               {displayedVibes.map((vibe, index) => {
                 const gradient = EMOTION_GRADIENTS[vibe.emotion] || EMOTION_GRADIENTS.joy;
                 const emoji = EMOTION_EMOJI[vibe.emotion] || '😊';
@@ -462,11 +472,20 @@ export default function TrendingPage() {
                     key={vibe.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
+                    whileHover={{
+                      scale: 1.05,
+                      zIndex: 10,
+                      transition: {
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20
+                      }
+                    }}
                     transition={{ delay: index * 0.02 }}
-                    className="break-inside-avoid"
+                    className="break-inside-avoid mb-6"
                   >
                     {/* Card with gradient background */}
-                    <div className={`relative ${gradient} rounded-3xl p-6 shadow-2xl overflow-hidden group/card`}>
+                    <div className={`relative ${gradient} rounded-3xl p-6 shadow-2xl overflow-hidden group/card will-change-transform cursor-pointer`}>
                       {/* Subtle overlay for text readability */}
                       <div className="absolute inset-0 bg-black/10" />
 
@@ -518,8 +537,8 @@ export default function TrendingPage() {
                       </div>
 
                       {/* Shine effect on hover */}
-                      <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 transform translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000" />
+                      <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 transform translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000 will-change-transform" />
                       </div>
                     </div>
                   </motion.div>

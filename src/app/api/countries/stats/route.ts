@@ -46,11 +46,27 @@ const COUNTRY_DATA: Record<string, { name: string; flag: string; timezone: strin
   PE: { name: 'Peru', flag: '🇵🇪', timezone: 'America/Lima' },
 };
 
-// Extract country code from region hash (assuming format like "US_CA" or just "US")
+// Extract country code from region hash
+// Handles formats: "US", "US-CA", "US_CA", "rgn:US", etc.
 function extractCountryCode(regionHash: string): string {
   if (!regionHash) return 'GLOBAL';
-  const parts = regionHash.split('_');
-  return parts[0].toUpperCase();
+
+  // Remove 'rgn:' prefix if present
+  let cleanHash = regionHash.startsWith('rgn:')
+    ? regionHash.substring(4)
+    : regionHash;
+
+  // Extract the first part (country code)
+  // Handle both underscore and dash separators
+  const parts = cleanHash.split(/[-_]/);
+  const countryCode = parts[0].toUpperCase();
+
+  // Return if it's a valid 2-letter country code
+  if (countryCode.length === 2) {
+    return countryCode;
+  }
+
+  return 'GLOBAL';
 }
 
 export async function GET() {
@@ -89,21 +105,28 @@ export async function GET() {
       checkIns: number;
       previousCheckIns: number;
       emotions: Record<string, number>;
+      lastCheckInTime: Date;
     }>();
 
     // Process recent check-ins
-    recentCheckIns.forEach((checkIn: { regionHash: string | null; emotion: string }) => {
+    recentCheckIns.forEach((checkIn: { regionHash: string | null; emotion: string; createdAt: Date }) => {
       const countryCode = extractCountryCode(checkIn.regionHash || '');
       if (!countryStats.has(countryCode)) {
         countryStats.set(countryCode, {
           checkIns: 0,
           previousCheckIns: 0,
-          emotions: {}
+          emotions: {},
+          lastCheckInTime: checkIn.createdAt
         });
       }
 
       const stats = countryStats.get(countryCode)!;
       stats.checkIns++;
+
+      // Update last check-in time if this is more recent
+      if (checkIn.createdAt > stats.lastCheckInTime) {
+        stats.lastCheckInTime = checkIn.createdAt;
+      }
 
       const emotion = checkIn.emotion.toLowerCase();
       stats.emotions[emotion] = (stats.emotions[emotion] || 0) + 1;
@@ -160,17 +183,33 @@ export async function GET() {
           dominantEmotion,
           emotionBreakdown,
           localTime,
+          lastCheckInTime: stats.lastCheckInTime,
+          minutesSinceLastCheckIn: Math.floor((now.getTime() - stats.lastCheckInTime.getTime()) / 60000),
           activityScore: stats.checkIns * (1 + (trend / 100)) // Weighted score
         };
       });
 
-    // Clever logic: Show top 12 countries by activity score
-    // This automatically prioritizes:
-    // 1. Countries with most check-ins
-    // 2. Countries with positive trends (growing activity)
-    // 3. Balances recent activity with growth
+    // Smart sorting logic: Show countries by most recent activity
+    // This creates a natural, live feeling to the dashboard
     const topCountries = countries
-      .sort((a, b) => b.activityScore - a.activityScore)
+      .sort((a, b) => {
+        // First priority: Countries with activity in last 5 minutes
+        const aIsVeryRecent = a.minutesSinceLastCheckIn < 5;
+        const bIsVeryRecent = b.minutesSinceLastCheckIn < 5;
+        if (aIsVeryRecent !== bIsVeryRecent) {
+          return aIsVeryRecent ? -1 : 1;
+        }
+
+        // Second priority: Countries with activity in last hour
+        const aIsRecent = a.minutesSinceLastCheckIn < 60;
+        const bIsRecent = b.minutesSinceLastCheckIn < 60;
+        if (aIsRecent !== bIsRecent) {
+          return aIsRecent ? -1 : 1;
+        }
+
+        // Within same recency tier, sort by activity score
+        return b.activityScore - a.activityScore;
+      })
       .slice(0, 12);
 
     // If we have less than 12 real countries, don't add fake ones

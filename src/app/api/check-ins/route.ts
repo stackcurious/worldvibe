@@ -4,6 +4,7 @@ import prisma from "@/lib/db/prisma";
 import { redis } from "@/lib/db/redis"; // Use enterprise Redis with SQLite fallback
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
+import { getRegionDisplayName } from "@/lib/location/region-decoder";
 
 // Cache configuration
 const CACHE_KEY = "check-ins:recent";
@@ -38,7 +39,13 @@ export async function GET(request: NextRequest) {
           metrics.increment('api.check_ins.cache_hit');
           const cachedItems = JSON.parse(cached);
           return NextResponse.json({
-            items: cachedItems,
+            data: cachedItems,
+            pagination: {
+              total: cachedItems.length,
+              page: 1,
+              limit,
+              hasMore: cachedItems.length >= limit
+            },
             nextCursor: cachedItems.length >= limit ? 2 : null,
             totalCount: cachedItems.length,
             timestamp: new Date().toISOString()
@@ -85,7 +92,8 @@ export async function GET(request: NextRequest) {
       emotion: checkIn.emotion.toLowerCase(),
       intensity: checkIn.intensity,
       note: checkIn.note || null,
-      region: checkIn.regionHash,
+      region: getRegionDisplayName(checkIn.regionHash), // Decode region hash to human-readable
+      regionHash: checkIn.regionHash, // Keep original hash for filtering
       timestamp: checkIn.createdAt.toISOString(),
       // Include coordinates for map visualization
       coordinates: checkIn.latitude && checkIn.longitude ? {
@@ -99,7 +107,13 @@ export async function GET(request: NextRequest) {
     const total = await prisma.checkIn.count({ where });
 
     const response = {
-      items: formattedCheckIns,
+      data: formattedCheckIns, // Changed from 'items' to 'data' to match globe component
+      pagination: {
+        total,
+        page,
+        limit,
+        hasMore: offset + limit < total
+      },
       nextCursor: offset + limit < total ? page + 1 : null,
       totalCount: total,
       timestamp: new Date().toISOString()
