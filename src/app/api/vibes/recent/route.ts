@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { logger } from "@/lib/logger";
 import { metrics } from "@/lib/metrics";
+import { getRegionDisplayName } from "@/lib/location/region-decoder";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       emotion: checkIn.emotion.toLowerCase(),
       intensity: checkIn.intensity,
       reason: checkIn.note,
-      region: checkIn.regionHash,
+      region: getRegionDisplayName(checkIn.regionHash),
       timestamp: checkIn.createdAt.toISOString(),
       deviceType: checkIn.deviceType.toLowerCase(),
     }));
