@@ -181,14 +181,6 @@ export default function TrendingPage() {
     }
   `;
 
-  useEffect(() => {
-    if (activeTab === 'wall') {
-      fetchVibes();
-      const interval = setInterval(fetchVibes, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [activeTab, selectedEmotion, fetchVibes]);
-
   const fetchVibes = useCallback(async () => {
     setLoading(true);
     try {
@@ -211,6 +203,14 @@ export default function TrendingPage() {
       setLoading(false);
     }
   }, [selectedEmotion]);
+
+  useEffect(() => {
+    if (activeTab === 'wall') {
+      fetchVibes();
+      const interval = setInterval(fetchVibes, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, selectedEmotion, fetchVibes]);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
