@@ -89,22 +89,46 @@ export function TrendingKeywords({
       {keywords.map((keyword, index) => (
         <motion.div
           key={keyword.word}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-colors"
+          initial={{ opacity: 0, x: -20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          whileHover={{
+            scale: 1.05,
+            x: 5,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 25
+            }
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ delay: index * 0.1, duration: 0.5 }}
+          className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/70 transition-all duration-300 cursor-pointer group"
         >
           <div className="flex items-center gap-2">
-            <span className="text-white font-medium">{keyword.word}</span>
+            <motion.span 
+              className="text-white font-medium group-hover:text-yellow-300 transition-colors duration-300"
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              {keyword.word}
+            </motion.span>
             {keyword.emotion && (
-              <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full">
+              <motion.span 
+                className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full group-hover:bg-blue-400/30 group-hover:text-blue-200 transition-all duration-300"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
                 {keyword.emotion}
-              </span>
+              </motion.span>
             )}
           </div>
-          <span className="text-gray-400 text-sm">
+          <motion.span 
+            className="text-gray-400 text-sm group-hover:text-white transition-colors duration-300"
+            whileHover={{ scale: 1.2 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
             {keyword.count}
-          </span>
+          </motion.span>
         </motion.div>
       ))}
     </div>

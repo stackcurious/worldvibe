@@ -34,6 +34,10 @@ export const Footer = memo(function Footer() {
           <span className="flex items-center gap-1 text-gray-300">
             Made with <Heart className="h-4 w-4 text-red-500" /> globally
           </span>
+          <span className="hidden md:inline">•</span>
+          <span className="text-gray-400 text-xs">
+            100% free & ad-free forever
+          </span>
         </div>
 
         {/* Live Check-in Counter & Database Status */}

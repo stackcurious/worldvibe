@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Sparkles, Globe, Filter, MapPin, Clock, Heart } from 'lucide-react';
 import { TrendingKeywords } from '@/components/trending/TrendingKeywords';
@@ -165,15 +165,31 @@ export default function TrendingPage() {
   const [displayCount, setDisplayCount] = useState(20);
   const [usingMockData, setUsingMockData] = useState(true);
 
+  // Add custom styles for enhanced card effects
+  const cardStyles = `
+    .shadow-3xl {
+      box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    .group:hover .shadow-3xl {
+      box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 40px rgba(168, 85, 247, 0.3);
+    }
+    .card-glow {
+      filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3));
+    }
+    .group:hover .card-glow {
+      filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.5));
+    }
+  `;
+
   useEffect(() => {
     if (activeTab === 'wall') {
       fetchVibes();
       const interval = setInterval(fetchVibes, 30000);
       return () => clearInterval(interval);
     }
-  }, [activeTab, selectedEmotion]);
+  }, [activeTab, selectedEmotion, fetchVibes]);
 
-  const fetchVibes = async () => {
+  const fetchVibes = useCallback(async () => {
     setLoading(true);
     try {
       const url = selectedEmotion
@@ -194,7 +210,7 @@ export default function TrendingPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEmotion]);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
@@ -219,6 +235,7 @@ export default function TrendingPage() {
   const hasMore = vibes.length > displayCount;
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
+      <style dangerouslySetInnerHTML={{ __html: cardStyles }} />
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <motion.div
@@ -461,8 +478,8 @@ export default function TrendingPage() {
           </div>
         ) : (
           <>
-            {/* Masonry Grid */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6">
+            {/* Improved Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {displayedVibes.map((vibe, index) => {
                 const gradient = EMOTION_GRADIENTS[vibe.emotion] || EMOTION_GRADIENTS.joy;
                 const emoji = EMOTION_EMOJI[vibe.emotion] || '😊';
@@ -470,75 +487,131 @@ export default function TrendingPage() {
                 return (
                   <motion.div
                     key={vibe.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
                     whileHover={{
-                      scale: 1.05,
-                      zIndex: 10,
+                      scale: 1.08,
+                      y: -8,
+                      rotateY: 5,
                       transition: {
                         type: "spring",
-                        stiffness: 300,
-                        damping: 20
+                        stiffness: 400,
+                        damping: 25
                       }
                     }}
-                    transition={{ delay: index * 0.02 }}
-                    className="break-inside-avoid mb-6"
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ 
+                      delay: index * 0.05,
+                      duration: 0.6,
+                      ease: "easeOut"
+                    }}
+                    className="group cursor-pointer"
+                    style={{ 
+                      perspective: "1000px",
+                      transformStyle: "preserve-3d"
+                    }}
                   >
-                    {/* Card with gradient background */}
-                    <div className={`relative ${gradient} rounded-3xl p-6 shadow-2xl overflow-hidden group/card will-change-transform cursor-pointer`}>
-                      {/* Subtle overlay for text readability */}
-                      <div className="absolute inset-0 bg-black/10" />
+                    {/* Card with enhanced gradient background */}
+                    <div className={`relative ${gradient} rounded-3xl p-6 shadow-2xl overflow-hidden transition-all duration-500 card-glow`}>
+                      {/* Enhanced overlay for better text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/10 to-black/20 group-hover:from-black/10 group-hover:via-black/15 group-hover:to-black/25 transition-all duration-500" />
+
+                      {/* Animated background pattern */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                      </div>
 
                       {/* Content */}
-                      <div className="relative space-y-4 text-white">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
+                      <div className="relative space-y-4 text-white z-10">
+                        {/* Header with enhanced animations */}
+                        <motion.div 
+                          className="flex items-start justify-between"
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
                           <div className="flex items-center gap-3">
-                            <span className="text-4xl drop-shadow-lg">{emoji}</span>
+                            <motion.span 
+                              className="text-4xl drop-shadow-lg"
+                              whileHover={{ 
+                                scale: 1.2, 
+                                rotate: [0, -10, 10, 0],
+                                transition: { duration: 0.5 }
+                              }}
+                            >
+                              {emoji}
+                            </motion.span>
                             <div>
-                              <h4 className="text-lg font-bold capitalize drop-shadow-md">
+                              <h4 className="text-lg font-bold capitalize drop-shadow-md group-hover:text-yellow-200 transition-colors duration-300">
                                 {vibe.emotion}
                               </h4>
                               <div className="flex gap-1 mt-1">
                                 {[...Array(5)].map((_, i) => (
-                                  <Heart
+                                  <motion.div
                                     key={i}
-                                    className={`w-3 h-3 ${
-                                      i < vibe.intensity
-                                        ? 'fill-white/90 text-white/90'
-                                        : 'fill-white/30 text-white/30'
-                                    }`}
-                                  />
+                                    whileHover={{ scale: 1.3, rotate: 15 }}
+                                    transition={{ type: "spring", stiffness: 400 }}
+                                  >
+                                    <Heart
+                                      className={`w-3 h-3 transition-all duration-300 ${
+                                        i < vibe.intensity
+                                          ? 'fill-white/90 text-white/90 group-hover:fill-yellow-300 group-hover:text-yellow-300'
+                                          : 'fill-white/30 text-white/30'
+                                      }`}
+                                    />
+                                  </motion.div>
                                 ))}
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Quote */}
-                        <blockquote className="text-base font-medium leading-relaxed drop-shadow-md">
+                        {/* Quote with enhanced styling */}
+                        <motion.blockquote 
+                          className="text-base font-medium leading-relaxed drop-shadow-md group-hover:text-white transition-colors duration-300"
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
                           "{vibe.reason}"
-                        </blockquote>
+                        </motion.blockquote>
 
-                        {/* Footer */}
-                        <div className="space-y-2 pt-2 border-t border-white/20">
-                          <div className="flex items-center gap-2 text-white/90 text-sm">
-                            <MapPin className="w-4 h-4" />
+                        {/* Footer with enhanced animations */}
+                        <motion.div 
+                          className="space-y-2 pt-2 border-t border-white/20 group-hover:border-white/40 transition-colors duration-300"
+                          whileHover={{ y: -2 }}
+                          transition={{ type: "spring", stiffness: 400 }}
+                        >
+                          <div className="flex items-center gap-2 text-white/90 text-sm group-hover:text-white transition-colors duration-300">
+                            <motion.div
+                              whileHover={{ scale: 1.2, rotate: 10 }}
+                              transition={{ type: "spring", stiffness: 400 }}
+                            >
+                              <MapPin className="w-4 h-4" />
+                            </motion.div>
                             <span className="font-medium">{vibe.region}</span>
                           </div>
-                          <div className="flex items-center justify-between text-white/80 text-xs">
+                          <div className="flex items-center justify-between text-white/80 text-xs group-hover:text-white/90 transition-colors duration-300">
                             <div className="flex items-center gap-2">
-                              <Clock className="w-3 h-3" />
+                              <motion.div
+                                whileHover={{ scale: 1.2, rotate: -10 }}
+                                transition={{ type: "spring", stiffness: 400 }}
+                              >
+                                <Clock className="w-3 h-3" />
+                              </motion.div>
                               {formatTimeAgo(vibe.timestamp)}
                             </div>
-                            <span className="capitalize">{vibe.deviceType}</span>
+                            <span className="capitalize group-hover:text-yellow-200 transition-colors duration-300">{vibe.deviceType}</span>
                           </div>
-                        </div>
+                        </motion.div>
                       </div>
 
-                      {/* Shine effect on hover */}
-                      <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 transform translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000 will-change-transform" />
+                      {/* Enhanced shine effect on hover */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1200 will-change-transform" />
+                      </div>
+
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-purple-400/20 blur-xl" />
                       </div>
                     </div>
                   </motion.div>

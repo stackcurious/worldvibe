@@ -127,33 +127,63 @@ export function RecentVibes({
       {vibes.map((vibe, index) => (
         <motion.div
           key={vibe.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className="p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-colors"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileHover={{
+            scale: 1.03,
+            y: -2,
+            transition: {
+              type: "spring",
+              stiffness: 400,
+              damping: 25
+            }
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ delay: index * 0.1, duration: 0.5 }}
+          className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-700/70 transition-all duration-300 cursor-pointer group"
         >
-          <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className={`font-medium capitalize ${getEmotionColor(vibe.emotion)}`}>
+              <motion.span 
+                className={`font-medium capitalize transition-colors duration-300 ${getEmotionColor(vibe.emotion)} group-hover:text-yellow-300`}
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
                 {vibe.emotion}
-              </span>
-              <span className="text-yellow-400 text-sm">
+              </motion.span>
+              <motion.span 
+                className="text-yellow-400 text-sm group-hover:text-yellow-300 transition-colors duration-300"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
                 {getIntensityStars(vibe.intensity)}
-              </span>
+              </motion.span>
             </div>
-            <span className="text-gray-400 text-xs">
+            <motion.span 
+              className="text-gray-400 text-xs group-hover:text-white transition-colors duration-300"
+              whileHover={{ scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
               {formatTimeAgo(vibe.timestamp)}
-            </span>
+            </motion.span>
           </div>
           
-          <p className="text-gray-300 text-sm leading-relaxed">
+          <motion.p 
+            className="text-gray-300 text-sm leading-relaxed group-hover:text-white transition-colors duration-300"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
             "{vibe.reason}"
-          </p>
+          </motion.p>
           
-          <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+          <motion.div 
+            className="flex items-center justify-between mt-3 text-xs text-gray-500 group-hover:text-gray-300 transition-colors duration-300"
+            whileHover={{ y: -1 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
             <span>Region: {vibe.region}</span>
-            <span className="capitalize">{vibe.deviceType}</span>
-          </div>
+            <span className="capitalize group-hover:text-yellow-300 transition-colors duration-300">{vibe.deviceType}</span>
+          </motion.div>
         </motion.div>
       ))}
     </div>
