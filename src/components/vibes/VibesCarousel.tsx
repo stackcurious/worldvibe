@@ -216,12 +216,20 @@ export function VibesCarousel() {
             </span>
           )}
         </div>
-        <Link
-          href="/trending"
-          className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
-        >
-          View all →
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/vibes"
+            className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+          >
+            Vibes Wall →
+          </Link>
+          <Link
+            href="/trending"
+            className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+          >
+            Trending →
+          </Link>
+        </div>
       </div>
 
       {/* Scrollable Cards Container */}

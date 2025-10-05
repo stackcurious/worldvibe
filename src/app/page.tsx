@@ -268,10 +268,22 @@ export default function LandingPage() {
               whileTap={{ scale: 0.95 }}
             >
               <Link
+                href="/vibes"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full font-bold text-lg border-2 border-white/20 hover:bg-white/20 transition-colors"
+              >
+                Vibes Wall 🎨
+              </Link>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link
                 href="/globe"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm rounded-full font-bold text-lg border-2 border-white/20 hover:bg-white/20 transition-colors"
               >
-                Explore the Globe 🌐
+                Explore Globe 🌐
               </Link>
             </motion.div>
           </div>

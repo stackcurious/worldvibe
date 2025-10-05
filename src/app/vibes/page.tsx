@@ -1,0 +1,304 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { MapPin, Clock, Heart, Globe, Filter, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+
+interface Vibe {
+  id: string;
+  emotion: string;
+  intensity: number;
+  reason: string;
+  region: string;
+  timestamp: string;
+  deviceType: string;
+}
+
+// Apple-inspired gradient backgrounds for each emotion
+const EMOTION_GRADIENTS: Record<string, string> = {
+  joy: 'bg-gradient-to-br from-amber-400 via-orange-400 to-yellow-500',
+  calm: 'bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500',
+  stress: 'bg-gradient-to-br from-rose-400 via-pink-400 to-red-500',
+  sadness: 'bg-gradient-to-br from-blue-400 via-indigo-400 to-purple-500',
+  anticipation: 'bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-500',
+};
+
+const EMOTION_EMOJI: Record<string, string> = {
+  joy: '😊',
+  calm: '😌',
+  stress: '😰',
+  sadness: '😢',
+  anticipation: '🤩',
+};
+
+export default function VibesWallPage() {
+  const [vibes, setVibes] = useState<Vibe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [displayCount, setDisplayCount] = useState(20);
+
+  useEffect(() => {
+    fetchVibes();
+    const interval = setInterval(fetchVibes, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [selectedEmotion]);
+
+  const fetchVibes = async () => {
+    try {
+      const url = selectedEmotion
+        ? `/api/vibes/recent?limit=100&emotion=${selectedEmotion}`
+        : '/api/vibes/recent?limit=100';
+      const response = await fetch(url);
+
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const data = await response.json();
+      setVibes(data.vibes || []);
+    } catch (err) {
+      console.error('Error fetching vibes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
+
+  const emotions = [
+    { key: 'joy', label: 'Joy', emoji: '😊' },
+    { key: 'calm', label: 'Calm', emoji: '😌' },
+    { key: 'anticipation', label: 'Anticipation', emoji: '🤩' },
+    { key: 'stress', label: 'Stress', emoji: '😰' },
+    { key: 'sadness', label: 'Sadness', emoji: '😢' },
+  ];
+
+  const displayedVibes = vibes.slice(0, displayCount);
+  const hasMore = vibes.length > displayCount;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-16 w-16 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-white text-xl">Loading vibes from around the world...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
+      <div className="container mx-auto px-4 py-16">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm px-6 py-3 rounded-full border border-purple-400/30 mb-6">
+            <Globe className="w-5 h-5 text-purple-400" />
+            <span className="text-sm font-medium text-purple-200">Live Global Feed</span>
+          </div>
+
+          <h1 className="text-6xl font-black mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">
+              Vibes Wall
+            </span>
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+            Real emotions from real people around the world, shared anonymously in real-time.
+          </p>
+
+          {/* Emotion Filter */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => setSelectedEmotion(null)}
+              className={`px-6 py-3 rounded-full font-medium transition-all ${
+                selectedEmotion === null
+                  ? 'bg-white text-purple-900 shadow-xl scale-105'
+                  : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                All Vibes
+              </div>
+            </button>
+            {emotions.map((emotion) => (
+              <button
+                key={emotion.key}
+                onClick={() => setSelectedEmotion(emotion.key)}
+                className={`px-6 py-3 rounded-full font-medium transition-all ${
+                  selectedEmotion === emotion.key
+                    ? 'bg-white text-purple-900 shadow-xl scale-105'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{emotion.emoji}</span>
+                  <span>{emotion.label}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 text-gray-300">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm">
+              {vibes.length} {selectedEmotion ? `${selectedEmotion} ` : ''}vibes shared • Updates every 30s
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Vibes Grid/Wall */}
+        {displayedVibes.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🌍</div>
+            <h3 className="text-2xl font-bold text-white mb-2">
+              No {selectedEmotion || ''} vibes yet
+            </h3>
+            <p className="text-gray-400 max-w-md mx-auto mb-6">
+              Be the first to share how you're feeling!
+            </p>
+            <Link
+              href="/"
+              className="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-semibold hover:shadow-xl transition-all"
+            >
+              Share Your Vibe
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Masonry Grid */}
+            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+              {displayedVibes.map((vibe, index) => {
+                const gradient = EMOTION_GRADIENTS[vibe.emotion] || EMOTION_GRADIENTS.joy;
+                const emoji = EMOTION_EMOJI[vibe.emotion] || '😊';
+
+                return (
+                  <motion.div
+                    key={vibe.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.02 }}
+                    className="break-inside-avoid"
+                  >
+                    {/* Card with gradient background */}
+                    <div className={`relative ${gradient} rounded-3xl p-6 shadow-2xl overflow-hidden group/card`}>
+                      {/* Subtle overlay for text readability */}
+                      <div className="absolute inset-0 bg-black/10" />
+
+                      {/* Content */}
+                      <div className="relative space-y-4 text-white">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-4xl drop-shadow-lg">{emoji}</span>
+                            <div>
+                              <h4 className="text-lg font-bold capitalize drop-shadow-md">
+                                {vibe.emotion}
+                              </h4>
+                              <div className="flex gap-1 mt-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Heart
+                                    key={i}
+                                    className={`w-3 h-3 ${
+                                      i < vibe.intensity
+                                        ? 'fill-white/90 text-white/90'
+                                        : 'fill-white/30 text-white/30'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quote */}
+                        <blockquote className="text-base font-medium leading-relaxed drop-shadow-md">
+                          "{vibe.reason}"
+                        </blockquote>
+
+                        {/* Footer */}
+                        <div className="space-y-2 pt-2 border-t border-white/20">
+                          <div className="flex items-center gap-2 text-white/90 text-sm">
+                            <MapPin className="w-4 h-4" />
+                            <span className="font-medium">{vibe.region}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-white/80 text-xs">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3 h-3" />
+                              {formatTimeAgo(vibe.timestamp)}
+                            </div>
+                            <span className="capitalize">{vibe.deviceType}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Shine effect on hover */}
+                      <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 transform translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000" />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Load More */}
+            {hasMore && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-center mt-12"
+              >
+                <button
+                  onClick={() => setDisplayCount(displayCount + 20)}
+                  className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full font-semibold text-white border border-white/20 transition-all hover:scale-105"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    Load More Vibes
+                  </div>
+                </button>
+              </motion.div>
+            )}
+          </>
+        )}
+
+        {/* Back to Home */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center mt-16"
+        >
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors"
+          >
+            ← Back to Home
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
