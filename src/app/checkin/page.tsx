@@ -63,10 +63,22 @@ export default function CheckInPage() {
     setIsSubmitting(true);
 
     try {
-      // Submit check-in to API
+      // Generate fingerprint if not exists
+      const fingerprint = localStorage.getItem('worldvibe_fingerprint') ||
+                         `fp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      if (!localStorage.getItem('worldvibe_fingerprint')) {
+        localStorage.setItem('worldvibe_fingerprint', fingerprint);
+      }
+
+      // Submit check-in to API with proper headers
       const response = await fetch('/api/check-in', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId || `temp-${Date.now()}`,
+          'X-Fingerprint': fingerprint
+        },
         body: JSON.stringify({
           emotion: selectedEmotion?.toLowerCase(), // API expects lowercase
           avatar: selectedAvatar,

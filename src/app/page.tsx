@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import FloatingCTA from "@/components/ui/FloatingCTA";
 import { LiveCheckInToast } from "@/components/notifications/live-checkin-toast";
+import { ReminderNotification } from "@/components/notifications/reminder-notification";
 import { CountryGrid } from "@/components/landing/country-grid";
 import { VibesCarousel } from "@/components/vibes/VibesCarousel";
 
@@ -210,6 +211,9 @@ export default function LandingPage() {
 
       {/* Live notifications */}
       <LiveCheckInToast />
+
+      {/* Reminder verification notification */}
+      <ReminderNotification />
 
       {/* Floating CTA */}
       <FloatingCTA />
