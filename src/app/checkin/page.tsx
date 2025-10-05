@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Send, Check } from "lucide-react";
+import { ArrowLeft, Sparkles, Send, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AvatarHead, AVATAR_OPTIONS } from "@/components/avatars/avatar-heads";
+import { useContentValidation } from "@/hooks/useContentValidation";
 
 const EMOTIONS = [
   { name: "Joy", emoji: "😊", color: "#FFB800", description: "Feeling happy and upbeat" },
@@ -35,6 +36,9 @@ export default function CheckInPage() {
   const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [deviceId, setDeviceId] = useState<string>("");
   const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+
+  // Content validation for note
+  const noteValidation = useContentValidation(note, 500);
 
   useEffect(() => {
     setMounted(true);
@@ -630,27 +634,64 @@ export default function CheckInPage() {
               </div>
 
               <div className="max-w-2xl mx-auto">
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 mb-6">
+                <div className={`bg-white/5 backdrop-blur-xl rounded-3xl p-8 border mb-6 transition-all ${
+                  noteValidation.severity === 'error'
+                    ? 'border-red-400/50 bg-red-500/5'
+                    : noteValidation.severity === 'warning'
+                    ? 'border-yellow-400/50 bg-yellow-500/5'
+                    : 'border-white/10'
+                }`}>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="What's contributing to this feeling? (Optional)"
-                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-white/30 transition-all"
-                    maxLength={280}
+                    className={`w-full h-32 bg-white/5 border rounded-2xl px-6 py-4 text-white placeholder-gray-500 resize-none focus:outline-none transition-all ${
+                      noteValidation.severity === 'error'
+                        ? 'border-red-400/50 focus:border-red-400'
+                        : noteValidation.severity === 'warning'
+                        ? 'border-yellow-400/50 focus:border-yellow-400'
+                        : 'border-white/10 focus:border-white/30'
+                    }`}
+                    maxLength={500}
                   />
-                  <div className="text-right text-sm text-gray-400 mt-2">
-                    {note.length}/280
+
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex-1">
+                      {noteValidation.message && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex items-center gap-2 text-sm ${
+                            noteValidation.severity === 'error'
+                              ? 'text-red-400'
+                              : noteValidation.severity === 'warning'
+                              ? 'text-yellow-400'
+                              : 'text-gray-400'
+                          }`}
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{noteValidation.message}</span>
+                        </motion.div>
+                      )}
+                    </div>
+                    <div className={`text-right text-sm ${
+                      noteValidation.charCount > noteValidation.maxChars * 0.9
+                        ? 'text-yellow-400'
+                        : 'text-gray-400'
+                    }`}>
+                      {noteValidation.charCount}/{noteValidation.maxChars}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
                   <motion.button
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="flex-1 px-8 py-5 rounded-full font-bold text-xl text-white flex items-center justify-center gap-3"
+                    disabled={isSubmitting || !noteValidation.isValid}
+                    className="flex-1 px-8 py-5 rounded-full font-bold text-xl text-white flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: selectedEmotionData?.color }}
-                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                    whileHover={{ scale: (isSubmitting || !noteValidation.isValid) ? 1 : 1.02 }}
+                    whileTap={{ scale: (isSubmitting || !noteValidation.isValid) ? 1 : 0.98 }}
                   >
                     {isSubmitting ? (
                       <>

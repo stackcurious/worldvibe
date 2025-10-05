@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           // Update last sent timestamp
           await prisma.emailReminder.update({
             where: { id: reminder.id },
-            data: { lastSentAt: now },
+            data: { lastReminderAt: now },
           });
           sentCount++;
           logger.info('Reminder sent successfully', { email: reminder.email });
