@@ -452,7 +452,7 @@ export class CheckInService {
         const historyKey = `${DEVICE_HISTORY_PREFIX}${deviceId}`;
         const history = await redis.lrange(historyKey, -limit, -1);
         
-        return history.map(item => JSON.parse(item));
+        return history.map((item: string) => JSON.parse(item));
       });
     } catch (error) {
       logger.warn("Failed to get check-in history", { 

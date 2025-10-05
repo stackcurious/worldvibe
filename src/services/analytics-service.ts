@@ -241,14 +241,14 @@ export class AnalyticsService {
         
         // Calculate total
         const total = Object.values(emotionCounts)
-          .reduce((sum, count) => sum + parseInt(count, 10), 0);
-        
+          .reduce((sum: number, count) => sum + parseInt(String(count), 10), 0);
+
         // Format results
         return Object.entries(emotionCounts)
           .map(([emotion, count]) => ({
             emotion,
-            count: parseInt(count, 10),
-            percentage: Math.round((parseInt(count, 10) / total) * 100)
+            count: parseInt(String(count), 10),
+            percentage: Math.round((parseInt(String(count), 10) / total) * 100)
           }))
           .sort((a, b) => b.count - a.count);
       });
@@ -285,14 +285,14 @@ export class AnalyticsService {
         
         // Calculate total
         const total = Object.values(emotionCounts)
-          .reduce((sum, count) => sum + parseInt(count, 10), 0);
-        
+          .reduce((sum: number, count) => sum + parseInt(String(count), 10), 0);
+
         // Format results
         return Object.entries(emotionCounts)
           .map(([emotion, count]) => ({
             emotion,
-            count: parseInt(count, 10),
-            percentage: Math.round((parseInt(count, 10) / total) * 100)
+            count: parseInt(String(count), 10),
+            percentage: Math.round((parseInt(String(count), 10) / total) * 100)
           }))
           .sort((a, b) => b.count - a.count);
       });
@@ -333,9 +333,9 @@ export class AnalyticsService {
         Object.entries(stats).forEach(([key, value]) => {
           if (key.startsWith('emotion:')) {
             const emotion = key.replace('emotion:', '');
-            emotions[emotion] = parseInt(value, 10);
+            emotions[emotion] = parseInt(String(value), 10);
           } else if (key === 'total') {
-            total = parseInt(value, 10);
+            total = parseInt(String(value), 10);
           }
         });
         
