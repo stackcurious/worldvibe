@@ -1,10 +1,10 @@
 // src/hooks/use-analytics.ts
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { init, track } from "@amplitude/analytics-browser";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { logger } from "@/lib/logger";
 
 // Ref to ensure Amplitude is initialized only once.
@@ -12,7 +12,6 @@ const amplitudeInitializedRef = { current: false };
 
 export function useAnalytics() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!amplitudeInitializedRef.current) {
@@ -30,7 +29,6 @@ export function useAnalytics() {
         track(eventName, {
           ...properties,
           path: pathname,
-          queryParams: Object.fromEntries(searchParams.entries()),
         });
 
         // Add a Sentry breadcrumb for better traceability.
@@ -47,7 +45,7 @@ export function useAnalytics() {
         Sentry.captureException(error);
       }
     },
-    [pathname, searchParams]
+    [pathname]
   );
 
   return { trackEvent };

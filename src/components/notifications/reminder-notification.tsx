@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, XCircle, Bell, X } from "lucide-react";
 
-export function ReminderNotification() {
+function ReminderNotificationInner() {
   const searchParams = useSearchParams();
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'info';
@@ -151,5 +151,13 @@ export function ReminderNotification() {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+export function ReminderNotification() {
+  return (
+    <Suspense fallback={null}>
+      <ReminderNotificationInner />
+    </Suspense>
   );
 }

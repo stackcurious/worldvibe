@@ -1,7 +1,7 @@
 // src/components/providers/analytics-provider.tsx
 "use client";
 
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import * as amplitude from '@amplitude/analytics-browser';
 
@@ -11,16 +11,10 @@ interface AnalyticsContextType {
 
 const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+// Inner component that uses useSearchParams - must be wrapped in Suspense
+function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
-    if (apiKey && apiKey.trim() !== '') {
-      amplitude.init(apiKey);
-    }
-  }, []);
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
@@ -33,6 +27,17 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, searchParams]);
 
+  return null;
+}
+
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+    if (apiKey && apiKey.trim() !== '') {
+      amplitude.init(apiKey);
+    }
+  }, []);
+
   const trackEvent = (name: string, properties?: Record<string, any>) => {
     const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
     if (apiKey && apiKey.trim() !== '') {
@@ -42,6 +47,9 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AnalyticsContext.Provider value={{ trackEvent }}>
+      <Suspense fallback={null}>
+        <AnalyticsTracker />
+      </Suspense>
       {children}
     </AnalyticsContext.Provider>
   );
